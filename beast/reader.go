@@ -26,6 +26,7 @@ const (
 // Reader converts the binary messages in an io.Reader to Message structs.
 type Reader struct {
 	bufrdr *bufio.Reader
+	offset uint64
 }
 
 // Message is a single transponder message decoded from the beast format.
@@ -45,21 +46,22 @@ func New(rdr io.Reader) *Reader {
 }
 
 // Read will return the next message from the beast stream.
-func (r *Reader) Read() (*Message, error) {
+func (r *Reader) Read() (*Message, uint64, error) {
+	startoffset := r.offset
 	// Advance until escape character
 	var charBuf byte
 	var err error
 	for charBuf != 0x1a {
 		charBuf, err = r.getByte()
 		if err != nil {
-			return nil, err
+			return nil, startoffset, err
 		}
 	}
 
 	// Type
 	charBuf, err = r.getByte()
 	if err != nil {
-		return nil, err
+		return nil, startoffset, err
 	}
 
 	msg := new(Message)
@@ -76,18 +78,19 @@ func (r *Reader) Read() (*Message, error) {
 		msg.Type = ModeSlong
 		data, err = r.getBytes(21)
 	default:
-		return nil, UnknownFormatError(fmt.Errorf("unexpected message type %s",
-			hex.EncodeToString([]byte{charBuf})))
+		return nil, startoffset,
+			UnknownFormatError(fmt.Errorf("unexpected message type %s",
+				hex.EncodeToString([]byte{charBuf})))
 	}
 	if err != nil {
-		return nil, err
+		return nil, startoffset, err
 	}
 
 	msg.Timestamp = data[0:6]
 	msg.SignalLevel = data[6]
 	msg.Message = data[7:]
 
-	return msg, nil
+	return msg, startoffset, nil
 }
 
 // getByte returns the next byte from the Reader, un-escaping the 0x1a
@@ -97,6 +100,7 @@ func (r *Reader) getByte() (byte, error) {
 	if err != nil {
 		return b, err
 	}
+	r.offset++
 	if b == 0x1a {
 		p, err := r.bufrdr.Peek(1)
 		if err == io.EOF {
@@ -107,6 +111,7 @@ func (r *Reader) getByte() (byte, error) {
 		}
 		if p[0] == 0x1a {
 			r.bufrdr.Discard(1)
+			r.offset++
 		}
 	}
 	return b, nil
@@ -115,13 +120,12 @@ func (r *Reader) getByte() (byte, error) {
 // getBytes returns the next `numBytes` un-escaped bytes from the Reader.
 func (r *Reader) getBytes(numBytes int) ([]byte, error) {
 	bytes := make([]byte, numBytes)
-	pos := 0
-	for pos < len(bytes) {
-		n, err := r.bufrdr.Read(bytes[pos:])
+	for pos := range bytes {
+		b, err := r.getByte()
 		if err != nil {
 			return nil, err
 		}
-		pos += n
+		bytes[pos] = b
 	}
 	return bytes, nil
 }

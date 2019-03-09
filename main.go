@@ -14,16 +14,16 @@ import (
 func main() {
 	rdr := beast.New(os.Stdin)
 	for {
-		msg, err := rdr.Read()
+		msg, startoffset, err := rdr.Read()
 		if err == io.EOF {
 			break
 		}
 		if _, ok := err.(beast.UnknownFormatError); ok {
-			log.Print(err)
+			log.Print(startoffset, err)
 			continue
 		}
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal(startoffset, err)
 		}
 		fmt.Println(hex.EncodeToString(msg.Message))
 		decoder.DecodeMessage(hex.EncodeToString(msg.Message))
