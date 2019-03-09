@@ -22,11 +22,11 @@ $$;
 DO
 $$
 BEGIN
-IF NOT EXISTS(SELECT * FROM schema_version WHERE version >= 1) THEN
+IF NOT EXISTS(SELECT * FROM schema_version WHERE version = 1) THEN
   CREATE TABLE raw_message (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     message    BYTEA,
-    timestamp  BIGINT,
+    timestamp  BYTEA,
     signal     SMALLINT,
     created_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
   );
