@@ -4,43 +4,58 @@ import (
 	"encoding/binary"
 )
 
-var adsbTypes = []string{
-	"Aircraft identification",
-	"Aircraft identification",
-	"Aircraft identification",
-	"Aircraft identification",
-	"Surface position",
-	"Surface position",
-	"Surface position",
-	"Surface position",
-	"Airborne position (w/ Baro Altitude)",
-	"Airborne position (w/ Baro Altitude)",
-	"Airborne position (w/ Baro Altitude)",
-	"Airborne position (w/ Baro Altitude)",
-	"Airborne position (w/ Baro Altitude)",
-	"Airborne position (w/ Baro Altitude)",
-	"Airborne position (w/ Baro Altitude)",
-	"Airborne position (w/ Baro Altitude)",
-	"Airborne position (w/ Baro Altitude)",
-	"Airborne position (w/ Baro Altitude)",
-	"Airborne velocities",
-	"Airborne position (w/ GNSS Height)",
-	"Airborne position (w/ GNSS Height)",
-	"Airborne position (w/ GNSS Height)",
-	"Reserved",
-	"Reserved",
-	"Reserved",
-	"Reserved",
-	"Reserved",
-	"Aircraft status",
-	"Target state and status information",
-	"UNKNOWN",
-	"Aircraft operation status",
+type adsbMessageType string
+
+const (
+	msgAircraftID            adsbMessageType = "Aircraft identification"
+	msgSurfacePosition       adsbMessageType = "Surface position"
+	msgAirbornPosWithBaroAlt adsbMessageType = "Airborne position (w/ Baro Altitude)"
+	msgAirbornVelocities     adsbMessageType = "Airborne velocities"
+	msgAirbornPosWithGNSSAlt adsbMessageType = "Airborne position (w/ GNSS Height)"
+	msgReserved              adsbMessageType = "Reserved"
+	msgAircraftStatus        adsbMessageType = "Aircraft status"
+	msgTargetStateStatus     adsbMessageType = "Target state and status information"
+	msgAircraftOpsStatus     adsbMessageType = "Aircraft operation status"
+	msgUnknown               adsbMessageType = "UNKNOWN"
+)
+
+var adsbTypes = []adsbMessageType{
+	msgAircraftID,
+	msgAircraftID,
+	msgAircraftID,
+	msgAircraftID,
+	msgSurfacePosition,
+	msgSurfacePosition,
+	msgSurfacePosition,
+	msgSurfacePosition,
+	msgAirbornPosWithBaroAlt,
+	msgAirbornPosWithBaroAlt,
+	msgAirbornPosWithBaroAlt,
+	msgAirbornPosWithBaroAlt,
+	msgAirbornPosWithBaroAlt,
+	msgAirbornPosWithBaroAlt,
+	msgAirbornPosWithBaroAlt,
+	msgAirbornPosWithBaroAlt,
+	msgAirbornPosWithBaroAlt,
+	msgAirbornPosWithBaroAlt,
+	msgAirbornVelocities,
+	msgAirbornPosWithGNSSAlt,
+	msgAirbornPosWithGNSSAlt,
+	msgAirbornPosWithGNSSAlt,
+	msgReserved,
+	msgReserved,
+	msgReserved,
+	msgReserved,
+	msgReserved,
+	msgAircraftStatus,
+	msgTargetStateStatus,
+	msgUnknown,
+	msgAircraftOpsStatus,
 }
 
-func getADSBType(b byte) (int, string) {
+func getADSBType(b byte) (int, adsbMessageType) {
 	tc, _ := binary.Uvarint([]byte{(b & 0xF8) >> 3})
-	typeStr := "UNKNOWN"
+	typeStr := msgUnknown
 	if int(tc-1) < len(adsbTypes) {
 		typeStr = adsbTypes[tc-1]
 	}
