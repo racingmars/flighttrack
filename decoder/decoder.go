@@ -29,7 +29,7 @@ func DecodeMessage(msg string) {
 
 		if typeStr == msgAircraftID {
 			id := getAdsbIdentification(data[4:])
-			fmt.Printf("IDENT: %s\n", id.Callsign)
+			fmt.Printf("\nIDENT: %s\n", id.Callsign)
 		}
 
 	} else if df == 20 || df == 21 {

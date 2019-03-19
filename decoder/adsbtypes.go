@@ -6,6 +6,31 @@ type AdsbIdentification struct {
 	Callsign string
 }
 
+// SpeedType holds the type of reported speed
+type SpeedType int
+
+const (
+	// SpeedGS is the groundspeed of the aircraft
+	SpeedGS SpeedType = iota
+
+	// SpeedIAS is the indicated airspeed of the aircraft
+	SpeedIAS
+
+	// SpeedTAS is the true airspeed of the aircraft
+	SpeedTAS
+)
+
+type AdsbVelocity struct {
+	TC               int
+	ST               int
+	IntentChange     bool
+	SpeedType        SpeedType
+	Speed            int
+	HeadingAvailable bool
+	Heading          int
+	VerticalRate     int
+}
+
 type adsbMessageType string
 
 const (
