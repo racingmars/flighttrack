@@ -31,6 +31,16 @@ type AdsbVelocity struct {
 	VerticalRate     int
 }
 
+type AdsbPosition struct {
+	TC       int
+	SS       int
+	Altitude int
+	Time     int
+	Frame    int
+	LatCPR   int
+	LonCPR   int
+}
+
 type adsbMessageType string
 
 const (

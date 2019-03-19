@@ -46,6 +46,11 @@ func DecodeMessage(msg string) {
 			fmt.Printf("\nHDG: %03d ; VS: %5dfpm ; SPEED: %3dkt (%s)\n", vel.Heading, vel.VerticalRate, vel.Speed, speedtype)
 		}
 
+		if typeStr == msgAirbornPosWithBaroAlt {
+			pos := getAdsbPosition(data[4:])
+			fmt.Printf("\nALT: %dft\n", pos.Altitude)
+		}
+
 	} else if df == 20 || df == 21 {
 		crc := CalcCRC(data)
 		origcrc := data[len(data)-3:]

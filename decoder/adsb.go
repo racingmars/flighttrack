@@ -109,3 +109,20 @@ func fillAdsbVelocityAirspeed(data []byte, result *AdsbVelocity) {
 		result.Heading = int(math.Round(float64(hdg) / 1024.0 * 360.0))
 	}
 }
+
+func getAdsbPosition(msg []byte) AdsbPosition {
+	result := AdsbPosition{}
+	result.TC = int(msg[0] & 0xF8 >> 3)
+	result.SS = int(msg[0] & 0x06 >> 1)
+
+	alt := (int(msg[1]) & 0xfe << 3) | (int(msg[2]) & 0xf0 >> 4)
+	q := msg[1] & 0x01
+	if q == 1 {
+		result.Altitude = alt*25 - 1000
+	} else {
+		panic("Unexpected Q")
+		result.Altitude = alt*100 - 1000
+	}
+
+	return result
+}

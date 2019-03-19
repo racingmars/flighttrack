@@ -37,3 +37,11 @@ func TestAirspeed(t *testing.T) {
 		t.Errorf("Bad speed: %d should be 376", result.Speed)
 	}
 }
+
+func TestAltitude(t *testing.T) {
+	msg, _ := hex.DecodeString("8D40621D58C382D690C8AC2863A7")
+	result := getAdsbPosition(msg[4:])
+	if result.Altitude != 38000 {
+		t.Errorf("Bad altitude: %d should be 38000", result.Altitude)
+	}
+}
