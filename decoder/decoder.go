@@ -18,14 +18,19 @@ func DecodeMessage(msg string) {
 		icaoid := data[1:4]
 		fmt.Printf(", ICAO ID: %s", hex.EncodeToString(icaoid))
 
-		if CheckCRC(data) {
-			fmt.Printf(", parity passed")
-		} else {
-			fmt.Printf(", parity FAILED")
-		}
+		// if CheckCRC(data) {
+		// 	fmt.Printf(", parity passed")
+		// } else {
+		// 	fmt.Printf(", parity FAILED")
+		// }
 
 		typeCode, typeStr := getADSBType(data[4])
 		fmt.Printf(". ADS-B: %d - %s", typeCode, typeStr)
+
+		if typeStr == msgAircraftID {
+			id := getAdsbIdentification(data[4:])
+			fmt.Printf("IDENT: %s\n", id.Callsign)
+		}
 
 	} else if df == 20 || df == 21 {
 		crc := CalcCRC(data)
