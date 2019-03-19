@@ -22,6 +22,9 @@ func TestGroundspeed(t *testing.T) {
 	if result.Speed != 159 {
 		t.Errorf("Bad speed: %d should be 159", result.Speed)
 	}
+	if result.VerticalRate != -832 {
+		t.Errorf("Bad vertical rate: %d should be -832", result.VerticalRate)
+	}
 }
 
 func TestAirspeed(t *testing.T) {

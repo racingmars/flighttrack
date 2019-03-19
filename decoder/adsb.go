@@ -52,6 +52,15 @@ func getAdsbVelocity(data []byte) AdsbVelocity {
 		panic(fmt.Errorf("Bad velocity subtype: %d", result.ST))
 	}
 
+	sVR := data[4] & 0x08 >> 3
+	vr := (int(data[4]) & 0x07 << 6) | (int(data[5]) & 0xfc >> 2)
+	vr = (vr - 1) * 64
+	if sVR == 1 {
+		vr = -1 * vr
+	}
+
+	result.VerticalRate = vr
+
 	return result
 }
 

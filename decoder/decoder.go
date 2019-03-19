@@ -32,6 +32,20 @@ func DecodeMessage(msg string) {
 			fmt.Printf("\nIDENT: %s\n", id.Callsign)
 		}
 
+		if typeStr == msgAirbornVelocities {
+			vel := getAdsbVelocity(data[4:])
+			var speedtype string
+			switch vel.SpeedType {
+			case SpeedGS:
+				speedtype = "groundspeed"
+			case SpeedIAS:
+				speedtype = "indicated airspeed"
+			case SpeedTAS:
+				speedtype = "true airspeed"
+			}
+			fmt.Printf("\nHDG: %03d ; VS: %5dfpm ; SPEED: %3dkt (%s)\n", vel.Heading, vel.VerticalRate, vel.Speed, speedtype)
+		}
+
 	} else if df == 20 || df == 21 {
 		crc := CalcCRC(data)
 		origcrc := data[len(data)-3:]
