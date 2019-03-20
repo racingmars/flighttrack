@@ -49,6 +49,7 @@ func DecodeMessage(msg string) {
 		if typeStr == msgAirbornPosWithBaroAlt {
 			pos := getAdsbPosition(data[4:])
 			fmt.Printf("\nALT: %dft\n", pos.Altitude)
+			fmt.Printf("\nLatCPR: %10d | LonCPR: %10d | Frame: %d\n", pos.LatCPR, pos.LonCPR, pos.Frame)
 		}
 
 	} else if df == 20 || df == 21 {

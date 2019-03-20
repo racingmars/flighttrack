@@ -45,3 +45,25 @@ func TestAltitude(t *testing.T) {
 		t.Errorf("Bad altitude: %d should be 38000", result.Altitude)
 	}
 }
+
+func TestPosition(t *testing.T) {
+	msg, _ := hex.DecodeString("8D40621D58C382D690C8AC2863A7")
+	resultEven := getAdsbPosition(msg[4:])
+	if resultEven.LatCPR != 93000 {
+		t.Errorf("Bad LAT-CPR: %d should be 93000", resultEven.LatCPR)
+	}
+	if resultEven.LonCPR != 51372 {
+		t.Errorf("Bad LON-CPR: %d should be 51372", resultEven.LonCPR)
+	}
+
+	msg, _ = hex.DecodeString("8D40621D58C386435CC412692AD6")
+	resultOdd := getAdsbPosition(msg[4:])
+	if resultOdd.LatCPR != 74158 {
+		t.Errorf("Bad LAT-CPR: %d should be 74158", resultEven.LatCPR)
+	}
+	if resultOdd.LonCPR != 50194 {
+		t.Errorf("Bad LON-CPR: %d should be 50194", resultEven.LonCPR)
+	}
+
+	calcPosition(resultOdd, resultEven)
+}

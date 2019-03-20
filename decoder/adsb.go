@@ -120,9 +120,55 @@ func getAdsbPosition(msg []byte) AdsbPosition {
 	if q == 1 {
 		result.Altitude = alt*25 - 1000
 	} else {
-		panic("Unexpected Q")
+		fmt.Printf("\nUnexpected Q (alt %d)\n", alt*100-1000)
 		result.Altitude = alt*100 - 1000
 	}
 
+	result.Time = int(msg[2]) & 0x08 >> 3
+	result.Frame = int(msg[2]) & 0x04 >> 2
+	result.LatCPR = (int(msg[2]) & 0x03 << 15) | (int(msg[3]) << 7) | (int(msg[4]) & 0xfe >> 1)
+	result.LonCPR = (int(msg[4]) & 0x01 << 16) | (int(msg[5]) << 8) | (int(msg[6]))
+
 	return result
+}
+
+const dLatEven float64 = 360.0 / 60.0
+const dLatOdd float64 = 360.0 / 59.0
+
+func calcPosition(oddFrame, evenFrame AdsbPosition) (float64, float64, bool) {
+	cprLatEven := float64(evenFrame.LatCPR) / 131072
+	//cprLonEven := float64(evenFrame.LonCPR) / 131072
+	cprLatOdd := float64(oddFrame.LatCPR) / 131072
+	//cprLonOdd := float64(oddFrame.LonCPR) / 131072
+
+	j := math.Floor(59*float64(cprLatEven) - 60*float64(cprLatOdd) + 0.5)
+	latEven := dLatEven * (math.Mod(j, 60) + cprLatEven)
+	latOdd := dLatOdd * (math.Mod(j, 59) + cprLatOdd)
+	if latEven >= 270 {
+		latEven = latEven - 360
+	}
+	if latOdd >= 270 {
+		latOdd = latOdd - 360
+	}
+
+	var lat float64
+	if evenFrame.Time >= oddFrame.Time {
+		lat = latEven
+	} else {
+		lat = latOdd
+	}
+
+	fmt.Println(lat)
+	if nl(latEven) != nl(latOdd) {
+		fmt.Println("Different zones")
+		return 0, 0, false
+	}
+
+	return lat, 0, true
+}
+
+func nl(lat float64) int {
+	result := (2 * math.Pi) /
+		math.Acos(1-((1-math.Cos(math.Pi/30))/(math.Pow(math.Cos(math.Pi/180*lat), 2))))
+	return int(math.Floor(result))
 }
