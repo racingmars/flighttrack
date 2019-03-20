@@ -29,7 +29,7 @@ func DecodeMessage(msg string) {
 
 		if typeStr == msgAircraftID {
 			id := getAdsbIdentification(data[4:])
-			fmt.Printf(" | IDENT: %s", id.Callsign)
+			fmt.Printf(" | IDENT: %s (%d)", id.Callsign, id.EC)
 		}
 
 		if typeStr == msgAirbornVelocities {

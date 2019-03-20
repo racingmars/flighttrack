@@ -120,8 +120,7 @@ func getAdsbPosition(msg []byte) AdsbPosition {
 	if q == 1 {
 		result.Altitude = alt*25 - 1000
 	} else {
-		fmt.Printf("\nUnexpected Q (alt %d)\n", alt*100-1000)
-		result.Altitude = alt*100 - 1000
+		result.Altitude = gillhamToAltitude(alt)
 	}
 
 	result.Time = int(msg[2]) & 0x08 >> 3
@@ -137,9 +136,9 @@ const dLatOdd float64 = 360.0 / 59.0
 
 func calcPosition(oddFrame, evenFrame AdsbPosition) (float64, float64, bool) {
 	cprLatEven := float64(evenFrame.LatCPR) / 131072
-	//cprLonEven := float64(evenFrame.LonCPR) / 131072
+	cprLonEven := float64(evenFrame.LonCPR) / 131072
 	cprLatOdd := float64(oddFrame.LatCPR) / 131072
-	//cprLonOdd := float64(oddFrame.LonCPR) / 131072
+	cprLonOdd := float64(oddFrame.LonCPR) / 131072
 
 	j := math.Floor(59*float64(cprLatEven) - 60*float64(cprLatOdd) + 0.5)
 	latEven := dLatEven * (math.Mod(j, 60) + cprLatEven)
@@ -164,7 +163,26 @@ func calcPosition(oddFrame, evenFrame AdsbPosition) (float64, float64, bool) {
 		return 0, 0, false
 	}
 
-	return lat, 0, true
+	// Longitude
+	var lon float64
+	if evenFrame.Time >= oddFrame.Time {
+		ni := math.Max(float64(nl(latEven)), 1)
+		dLon := 360.0 / ni
+		m := math.Floor(cprLonEven*(float64(nl(latEven))-1) - cprLonOdd*float64(nl(latEven)) + 0.5)
+		lon = dLon*math.Mod(m, ni) + cprLonEven
+	} else {
+		ni := math.Max(float64(nl(latOdd))-1, 1)
+		dLon := 360.0 / ni
+		m := math.Floor(cprLonEven*(float64(nl(latOdd))-1) - cprLonOdd*float64(nl(latOdd)) + 0.5)
+		lon = dLon*math.Mod(m, ni) + cprLonOdd
+	}
+	lon = lon * 10
+	if lon >= 180 {
+		lon = lon - 360
+	}
+
+	fmt.Println(lon)
+	return lat, lon, true
 }
 
 func nl(lat float64) int {

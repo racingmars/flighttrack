@@ -76,3 +76,17 @@ func binaryToBytes(data []int) []byte {
 	}
 	return result
 }
+
+// Gillham altitude encoding. See:
+// https://en.wikipedia.org/wiki/Gillham_code
+// https://web.archive.org/web/20180116184525/http://www.ccsinfo.com/forum/viewtopic.php?p=140960
+func gillhamToAltitude(value int) int {
+	value ^= (value >> 8)
+	value ^= (value >> 4)
+	value ^= (value >> 2)
+	value ^= (value >> 1)
+
+	value -= (((value >> 4) * 6) + ((((value) % 16) / 5) * 2))
+
+	return (value - 13) * 100
+}
