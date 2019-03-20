@@ -29,7 +29,7 @@ func DecodeMessage(msg string) {
 
 		if typeStr == msgAircraftID {
 			id := getAdsbIdentification(data[4:])
-			fmt.Printf("\nIDENT: %s\n", id.Callsign)
+			fmt.Printf(" | IDENT: %s", id.Callsign)
 		}
 
 		if typeStr == msgAirbornVelocities {
@@ -43,13 +43,13 @@ func DecodeMessage(msg string) {
 			case SpeedTAS:
 				speedtype = "true airspeed"
 			}
-			fmt.Printf("\nHDG: %03d ; VS: %5dfpm ; SPEED: %3dkt (%s)\n", vel.Heading, vel.VerticalRate, vel.Speed, speedtype)
+			fmt.Printf(" | HDG: %03d ; VS: %5dfpm ; SPEED: %3dkt (%s)", vel.Heading, vel.VerticalRate, vel.Speed, speedtype)
 		}
 
 		if typeStr == msgAirbornPosWithBaroAlt {
 			pos := getAdsbPosition(data[4:])
-			fmt.Printf("\nALT: %dft\n", pos.Altitude)
-			fmt.Printf("\nLatCPR: %10d | LonCPR: %10d | Frame: %d\n", pos.LatCPR, pos.LonCPR, pos.Frame)
+			fmt.Printf(" | ALT: %dft", pos.Altitude)
+			fmt.Printf(" | LatCPR: %6d | LonCPR: %6d | Frame: %d", pos.LatCPR, pos.LonCPR, pos.Frame)
 		}
 
 	} else if df == 20 || df == 21 {

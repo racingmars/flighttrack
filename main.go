@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/hex"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -25,7 +24,7 @@ func main() {
 		if err != nil {
 			log.Fatal(startoffset, err)
 		}
-		fmt.Println(hex.EncodeToString(msg.Message))
+		//fmt.Println(hex.EncodeToString(msg.Message))
 		decoder.DecodeMessage(hex.EncodeToString(msg.Message))
 	}
 }

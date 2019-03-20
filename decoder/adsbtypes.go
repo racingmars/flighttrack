@@ -44,15 +44,15 @@ type AdsbPosition struct {
 type adsbMessageType string
 
 const (
-	msgAircraftID            adsbMessageType = "Aircraft identification"
-	msgSurfacePosition       adsbMessageType = "Surface position"
-	msgAirbornPosWithBaroAlt adsbMessageType = "Airborne position (w/ Baro Altitude)"
-	msgAirbornVelocities     adsbMessageType = "Airborne velocities"
-	msgAirbornPosWithGNSSAlt adsbMessageType = "Airborne position (w/ GNSS Height)"
+	msgAircraftID            adsbMessageType = "Aircraft ID"
+	msgSurfacePosition       adsbMessageType = "Surface pos."
+	msgAirbornPosWithBaroAlt adsbMessageType = "Airborn pos. (w/ Baro Alt)"
+	msgAirbornVelocities     adsbMessageType = "Airborn vel."
+	msgAirbornPosWithGNSSAlt adsbMessageType = "Airborn pos. (w/ GNSS Hgt)"
 	msgReserved              adsbMessageType = "Reserved"
 	msgAircraftStatus        adsbMessageType = "Aircraft status"
-	msgTargetStateStatus     adsbMessageType = "Target state and status information"
-	msgAircraftOpsStatus     adsbMessageType = "Aircraft operation status"
+	msgTargetStateStatus     adsbMessageType = "Target state and status info"
+	msgAircraftOpsStatus     adsbMessageType = "Aircraft op status"
 	msgUnknown               adsbMessageType = "UNKNOWN"
 )
 
