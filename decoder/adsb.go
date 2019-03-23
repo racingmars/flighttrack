@@ -3,6 +3,7 @@ package decoder
 import (
 	"fmt"
 	"math"
+	"time"
 )
 
 func getADSBType(b byte) (int, adsbMessageType) {
@@ -111,7 +112,7 @@ func fillAdsbVelocityAirspeed(data []byte, result *AdsbVelocity) {
 }
 
 func getAdsbPosition(msg []byte) AdsbPosition {
-	result := AdsbPosition{}
+	result := AdsbPosition{Timestamp: time.Now()}
 	result.TC = int(msg[0] & 0xF8 >> 3)
 	result.SS = int(msg[0] & 0x06 >> 1)
 
@@ -123,7 +124,6 @@ func getAdsbPosition(msg []byte) AdsbPosition {
 		result.Altitude = gillhamToAltitude(alt)
 	}
 
-	result.Time = int(msg[2]) & 0x08 >> 3
 	result.Frame = int(msg[2]) & 0x04 >> 2
 	result.LatCPR = (int(msg[2]) & 0x03 << 15) | (int(msg[3]) << 7) | (int(msg[4]) & 0xfe >> 1)
 	result.LonCPR = (int(msg[4]) & 0x01 << 16) | (int(msg[5]) << 8) | (int(msg[6]))
@@ -151,21 +151,19 @@ func calcPosition(oddFrame, evenFrame AdsbPosition) (float64, float64, bool) {
 	}
 
 	var lat float64
-	if evenFrame.Time >= oddFrame.Time {
+	if oddFrame.Timestamp.Before(evenFrame.Timestamp) {
 		lat = latEven
 	} else {
 		lat = latOdd
 	}
 
-	fmt.Println(lat)
 	if nl(latEven) != nl(latOdd) {
-		fmt.Println("Different zones")
 		return 0, 0, false
 	}
 
 	// Longitude
 	var lon float64
-	if evenFrame.Time >= oddFrame.Time {
+	if oddFrame.Timestamp.Before(evenFrame.Timestamp) {
 		ni := math.Max(float64(nl(latEven)), 1)
 		dLon := 360.0 / ni
 		m := math.Floor(cprLonEven*(float64(nl(latEven))-1) - cprLonOdd*float64(nl(latEven)) + 0.5)
@@ -181,7 +179,6 @@ func calcPosition(oddFrame, evenFrame AdsbPosition) (float64, float64, bool) {
 		lon = lon - 360
 	}
 
-	fmt.Println(lon)
 	return lat, lon, true
 }
 

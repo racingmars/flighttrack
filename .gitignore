@@ -12,3 +12,7 @@ dblogger/dblogger
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+
+# Mac stuff
+._*
+.DS_Store

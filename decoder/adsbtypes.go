@@ -1,5 +1,7 @@
 package decoder
 
+import "time"
+
 type AdsbIdentification struct {
 	TC       int
 	EC       int
@@ -32,13 +34,13 @@ type AdsbVelocity struct {
 }
 
 type AdsbPosition struct {
-	TC       int
-	SS       int
-	Altitude int
-	Time     int
-	Frame    int
-	LatCPR   int
-	LonCPR   int
+	Timestamp time.Time
+	TC        int
+	SS        int
+	Altitude  int
+	Frame     int
+	LatCPR    int
+	LonCPR    int
 }
 
 type adsbMessageType string

@@ -1,17 +1,20 @@
 package main
 
 import (
-	"encoding/hex"
 	"io"
 	"log"
 	"os"
+	"time"
 
 	"github.com/racingmars/flighttrack/beast"
+	"github.com/racingmars/flighttrack/consolehandler"
 	"github.com/racingmars/flighttrack/decoder"
+	"github.com/racingmars/flighttrack/tracker"
 )
 
 func main() {
 	rdr := beast.New(os.Stdin)
+	tracker := tracker.New(consolehandler.ConsoleHandler{})
 	for {
 		msg, startoffset, err := rdr.Read()
 		if err == io.EOF {
@@ -25,7 +28,10 @@ func main() {
 			log.Fatal(startoffset, err)
 		}
 		//fmt.Println(hex.EncodeToString(msg.Message))
-		decoder.DecodeMessage(hex.EncodeToString(msg.Message))
+		icao, decoded := decoder.DecodeMessage(msg.Message)
+		if icao != "" {
+			tracker.Message(icao, time.Now(), decoded)
+		}
 	}
 }
 
