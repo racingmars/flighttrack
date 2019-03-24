@@ -15,6 +15,7 @@ const headingEpsilon = 5
 const speedEpsilon = 10
 const vsEpsilon = 100
 const altitudeEpsilon = 100
+const distanceEpsilonNM = 5
 
 type FlightHandler interface {
 	NewFlight(icaoID string, firstSeen time.Time)
@@ -198,6 +199,13 @@ func (t *Tracker) handleAdsbPosition(icaoID string, flt *flight, tm time.Time, m
 			if flt.Current.Longitude != flt.Last.Longitude || flt.Current.Latitude != flt.Last.Latitude {
 				reportable = true
 			}
+			if !flt.Last.PositionValid {
+				reportable = true
+			} else {
+				if math.Abs(distanceNM(lat, flt.Last.Latitude, lon, flt.Last.Longitude)) >= distanceEpsilonNM {
+					reportable = true
+				}
+			}
 		}
 	}
 
@@ -232,4 +240,18 @@ func (t *Tracker) sweep(tm time.Time) {
 		}
 	}
 	t.nextSweep = tm.Add(sweepInterval)
+}
+
+// Haversine distance between two GPS coordinates
+// https://janakiev.com/blog/gps-points-distance-python/
+func distanceNM(lat1, lon1, lat2, lon2 float64) float64 {
+	const r float64 = 6372800 // Earth radius in meters
+	phi1 := lat1 * (math.Pi / 180)
+	phi2 := lat2 * (math.Pi / 180)
+	dphi := (lat2 - lat1) * (math.Pi / 180)
+	dlambda := (lon2 - lon1) * (math.Pi / 180)
+
+	a := math.Pow(math.Sin(dphi/2.0), 2) + math.Cos(phi1)*math.Cos(phi2)*math.Pow(math.Sin(dlambda/2), 2)
+	meters := 2 * r * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+	return meters / 1852
 }

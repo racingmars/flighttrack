@@ -54,3 +54,10 @@ func TestPosition(t *testing.T) {
 	icao, decoded = decoder.DecodeMessage(msgOdd)
 	tracker.Message(icao, time.Now(), decoded)
 }
+
+func TestDistance(t *testing.T) {
+	distance := distanceNM(51.5073219, -0.1276474, 52.5170365, 13.3888599)
+	if !(distance > 502 && distance < 503) {
+		t.Errorf("Distance was %f, should be 502.55nm", distance)
+	}
+}
