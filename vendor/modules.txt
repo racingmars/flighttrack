@@ -4,3 +4,8 @@ github.com/jmoiron/sqlx/reflectx
 # github.com/lib/pq v1.0.0
 github.com/lib/pq
 github.com/lib/pq/oid
+# github.com/rs/zerolog v1.13.0
+github.com/rs/zerolog/log
+github.com/rs/zerolog
+github.com/rs/zerolog/internal/cbor
+github.com/rs/zerolog/internal/json
