@@ -55,6 +55,9 @@ func (h *ConsoleHandler) AddTrackPoint(icaoID string, trackPoint tracker.TrackLo
 	} else {
 		fmt.Printf("         ")
 	}
+	if trackPoint.PositionValid {
+		fmt.Printf(" %f/%f", trackPoint.Latitude, trackPoint.Longitude)
+	}
 	fmt.Printf("\n")
 }
 

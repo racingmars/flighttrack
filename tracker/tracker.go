@@ -24,9 +24,10 @@ type FlightHandler interface {
 }
 
 type Tracker struct {
-	flights   map[string]*flight
-	handlers  FlightHandler
-	nextSweep time.Time
+	ForceReporting bool
+	flights        map[string]*flight
+	handlers       FlightHandler
+	nextSweep      time.Time
 }
 
 type flight struct {
@@ -63,10 +64,11 @@ type TrackLog struct {
 	Squak         string
 }
 
-func New(handler FlightHandler) *Tracker {
+func New(handler FlightHandler, forceReporting bool) *Tracker {
 	t := new(Tracker)
 	t.flights = make(map[string]*flight)
 	t.handlers = handler
+	t.ForceReporting = forceReporting
 	return t
 }
 
@@ -183,13 +185,29 @@ func (t *Tracker) handleAdsbPosition(icaoID string, flt *flight, tm time.Time, m
 		reportable = true
 	}
 
+	if msg.Frame == 0 {
+		flt.evenFrame = msg
+	} else {
+		flt.oddFrame = msg
+	}
+	if flt.evenFrame != nil && flt.oddFrame != nil {
+		if lat, lon, good := decoder.CalcPosition(*flt.oddFrame, *flt.evenFrame); good {
+			flt.Current.PositionValid = true
+			flt.Current.Longitude = lon
+			flt.Current.Latitude = lat
+			if flt.Current.Longitude != flt.Last.Longitude || flt.Current.Latitude != flt.Last.Latitude {
+				reportable = true
+			}
+		}
+	}
+
 	if reportable {
 		t.report(icaoID, flt, tm)
 	}
 }
 
 func (t *Tracker) report(icaoID string, flt *flight, tm time.Time) {
-	if flt.Last.Time.Add(reportMinInterval).After(flt.Current.Time) {
+	if !t.ForceReporting && flt.Last.Time.Add(reportMinInterval).After(flt.Current.Time) {
 		// We've too recently sent a previous position report.
 		return
 	}

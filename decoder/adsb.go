@@ -152,15 +152,17 @@ func getAdsbPosition(msg []byte) AdsbPosition {
 const dLatEven float64 = 360.0 / 60.0
 const dLatOdd float64 = 360.0 / 59.0
 
-func calcPosition(oddFrame, evenFrame AdsbPosition) (float64, float64, bool) {
+func CalcPosition(oddFrame, evenFrame AdsbPosition) (float64, float64, bool) {
+	//fmt.Printf("ELat(%d) OLat(%d) ELon(%d) OLon(%d)\n", evenFrame.LatCPR, oddFrame.LatCPR, evenFrame.LonCPR, oddFrame.LonCPR)
+
 	cprLatEven := float64(evenFrame.LatCPR) / 131072
 	cprLonEven := float64(evenFrame.LonCPR) / 131072
 	cprLatOdd := float64(oddFrame.LatCPR) / 131072
 	cprLonOdd := float64(oddFrame.LonCPR) / 131072
 
 	j := math.Floor(59*float64(cprLatEven) - 60*float64(cprLatOdd) + 0.5)
-	latEven := dLatEven * (math.Mod(j, 60) + cprLatEven)
-	latOdd := dLatOdd * (math.Mod(j, 59) + cprLatOdd)
+	latEven := dLatEven * (mod(j, 60) + cprLatEven)
+	latOdd := dLatOdd * (mod(j, 59) + cprLatOdd)
 	if latEven >= 270 {
 		latEven = latEven - 360
 	}
@@ -185,14 +187,13 @@ func calcPosition(oddFrame, evenFrame AdsbPosition) (float64, float64, bool) {
 		ni := math.Max(float64(nl(latEven)), 1)
 		dLon := 360.0 / ni
 		m := math.Floor(cprLonEven*(float64(nl(latEven))-1) - cprLonOdd*float64(nl(latEven)) + 0.5)
-		lon = dLon*math.Mod(m, ni) + cprLonEven
+		lon = dLon*mod(m, ni) + cprLonEven
 	} else {
 		ni := math.Max(float64(nl(latOdd))-1, 1)
 		dLon := 360.0 / ni
 		m := math.Floor(cprLonEven*(float64(nl(latOdd))-1) - cprLonOdd*float64(nl(latOdd)) + 0.5)
-		lon = dLon*math.Mod(m, ni) + cprLonOdd
+		lon = dLon * (mod(m, ni) + cprLonOdd)
 	}
-	lon = lon * 10
 	if lon >= 180 {
 		lon = lon - 360
 	}
@@ -204,4 +205,8 @@ func nl(lat float64) int {
 	result := (2 * math.Pi) /
 		math.Acos(1-((1-math.Cos(math.Pi/30))/(math.Pow(math.Cos(math.Pi/180*lat), 2))))
 	return int(math.Floor(result))
+}
+
+func mod(x, y float64) float64 {
+	return x - y*math.Floor(x/y)
 }

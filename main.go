@@ -14,7 +14,7 @@ import (
 
 func main() {
 	rdr := beast.New(os.Stdin)
-	tracker := tracker.New(new(consolehandler.ConsoleHandler))
+	tracker := tracker.New(new(consolehandler.ConsoleHandler), false)
 	for {
 		msg, startoffset, err := rdr.Read()
 		if err == io.EOF {

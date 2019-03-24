@@ -57,6 +57,9 @@ func TestAltitudeQZero(t *testing.T) {
 func TestPosition(t *testing.T) {
 	msg, _ := hex.DecodeString("8D40621D58C382D690C8AC2863A7")
 	resultEven := getAdsbPosition(msg[4:])
+	if resultEven.Frame != 0 {
+		t.Errorf("Even frame didn't report even.")
+	}
 	if resultEven.LatCPR != 93000 {
 		t.Errorf("Bad LAT-CPR: %d should be 93000", resultEven.LatCPR)
 	}
@@ -66,6 +69,9 @@ func TestPosition(t *testing.T) {
 
 	msg, _ = hex.DecodeString("8D40621D58C386435CC412692AD6")
 	resultOdd := getAdsbPosition(msg[4:])
+	if resultOdd.Frame != 1 {
+		t.Errorf("Odd frame didn't report odd.")
+	}
 	if resultOdd.LatCPR != 74158 {
 		t.Errorf("Bad LAT-CPR: %d should be 74158", resultEven.LatCPR)
 	}
@@ -73,5 +79,5 @@ func TestPosition(t *testing.T) {
 		t.Errorf("Bad LON-CPR: %d should be 50194", resultEven.LonCPR)
 	}
 
-	calcPosition(resultOdd, resultEven)
+	CalcPosition(resultOdd, resultEven)
 }
