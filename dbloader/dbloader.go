@@ -3,18 +3,17 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"runtime"
 	"runtime/pprof"
 	"time"
 
-	"github.com/racingmars/flighttrack/consolehandler"
 	"github.com/racingmars/flighttrack/decoder"
 	"github.com/racingmars/flighttrack/tracker"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/rs/zerolog/log"
 )
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to `file`")
@@ -25,18 +24,18 @@ func main() {
 	if *cpuprofile != "" {
 		f, err := os.Create(*cpuprofile)
 		if err != nil {
-			log.Fatal("could not create CPU profile: ", err)
+			log.Fatal().Err(err).Msg("could not create CPU profile")
 		}
 		defer f.Close()
 		if err := pprof.StartCPUProfile(f); err != nil {
-			log.Fatal("could not start CPU profile: ", err)
+			log.Fatal().Err(err).Msg("could not start CPU profile")
 		}
 		defer pprof.StopCPUProfile()
 	}
 
 	db, err := getConnection()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("couldn't connect to DB")
 	}
 	defer db.Close()
 
@@ -45,12 +44,12 @@ func main() {
 	if *memprofile != "" {
 		f, err := os.Create(*memprofile)
 		if err != nil {
-			log.Fatal("could not create memory profile: ", err)
+			log.Fatal().Err(err).Msg("could not create memory profile")
 		}
 		defer f.Close()
 		runtime.GC() // get up-to-date statistics
 		if err := pprof.WriteHeapProfile(f); err != nil {
-			log.Fatal("could not write memory profile: ", err)
+			log.Fatal().Err(err).Msg("could not write memory profile")
 		}
 	}
 }
@@ -76,12 +75,17 @@ func loadRows(db *sqlx.DB) {
 		return
 	}
 
-	tracker := tracker.New(new(consolehandler.ConsoleHandler), false)
+	handler := newHandler(db)
+	defer handler.Close()
+	tracker := tracker.New(handler, false)
 	defer tracker.CloseAllFlights()
 
 	msg := Message{}
+	var total, batch int
 
 	for rows.Next() {
+		total++
+		batch++
 		err = rows.StructScan(&msg)
 		if err != nil {
 			fmt.Println(err)
@@ -91,5 +95,11 @@ func loadRows(db *sqlx.DB) {
 		if icao != "" && icao != "000000" {
 			tracker.Message(icao, msg.Time, decoded)
 		}
+		if batch == 100000 {
+			log.Info().Msgf("processed %d messages", total)
+			batch = 0
+		}
 	}
+
+	log.Info().Msgf("processed %d messages", total)
 }
