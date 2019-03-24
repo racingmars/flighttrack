@@ -10,21 +10,34 @@ import (
 )
 
 type handler struct {
-	db      *sqlx.DB
-	idmap   map[string]int
-	logstmt *sqlx.Stmt
+	db         *sqlx.DB
+	idmap      map[string]int
+	currentTxn *sqlx.Tx
+	logstmt    *sqlx.Stmt
+	batchCount int
 }
 
 func newHandler(db *sqlx.DB) *handler {
+	tx, err := db.Beginx()
+	if err != nil {
+		log.Panic().Err(err).Msgf("couldn't make new transaction in newHandler()")
+	}
 	return &handler{
-		db:    db,
-		idmap: make(map[string]int),
+		db:         db,
+		idmap:      make(map[string]int),
+		currentTxn: tx,
 	}
 }
 
 func (h *handler) Close() {
 	if h.logstmt != nil {
 		h.logstmt.Close()
+	}
+	if h.currentTxn != nil {
+		err := h.currentTxn.Commit()
+		if err != nil {
+			log.Error().Err(err).Msg("couldn't commit transaction when closing handler")
+		}
 	}
 }
 
@@ -37,6 +50,7 @@ func (h *handler) NewFlight(icaoID string, firstSeen time.Time) {
 		return
 	}
 	h.idmap[icaoID] = id
+	h.batchCount++
 }
 
 func (h *handler) CloseFlight(icaoID string, lastSeen time.Time, messages int) {
@@ -52,6 +66,7 @@ func (h *handler) CloseFlight(icaoID string, lastSeen time.Time, messages int) {
 	}
 
 	delete(h.idmap, icaoID)
+	h.batchCount++
 }
 
 func (h *handler) SetIdentity(icaoID, callsign string, change bool) {
@@ -71,11 +86,12 @@ func (h *handler) SetIdentity(icaoID, callsign string, change bool) {
 	if err != nil {
 		log.Error().Err(err).Msgf("setting callsign for flight %s (%d)", icaoID, id)
 	}
+	h.batchCount++
 }
 
 func (h *handler) AddTrackPoint(icaoID string, t tracker.TrackLog) {
 	if h.logstmt == nil {
-		stmt, err := h.db.Preparex(`INSERT INTO tracklog (flight_id, time, latitude, longitude, heading, speed, altitude, vs)
+		stmt, err := h.currentTxn.Preparex(`INSERT INTO tracklog (flight_id, time, latitude, longitude, heading, speed, altitude, vs)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`)
 		if err != nil {
 			log.Error().Err(err).Msgf("preparing tracklog statement")
@@ -116,4 +132,26 @@ func (h *handler) AddTrackPoint(icaoID string, t tracker.TrackLog) {
 		log.Error().Err(err).Msgf("adding track log for flight %s (%d)", icaoID, id)
 	}
 
+	h.batchCount++
+	if h.batchCount > 25000 {
+		h.rotateTransaction()
+	}
+}
+
+func (h *handler) rotateTransaction() {
+	//log.Debug().Msg("committing transaction")
+	if h.logstmt != nil {
+		h.logstmt.Close()
+		h.logstmt = nil
+	}
+	err := h.currentTxn.Commit()
+	if err != nil {
+		log.Error().Err(err).Msgf("couldn't commit transaction")
+	}
+	tx, err := h.db.Beginx()
+	if err != nil {
+		log.Panic().Err(err).Msg("couldn't start new transaction")
+	}
+	h.currentTxn = tx
+	h.batchCount = 0
 }
