@@ -9,8 +9,8 @@ import (
 func getADSBType(b byte) (int, adsbMessageType) {
 	tc := int((b & 0xF8) >> 3)
 	typeStr := msgUnknown
-	if int(tc-1) < len(adsbTypes) {
-		typeStr = adsbTypes[tc-1]
+	if int(tc) < len(adsbTypes) {
+		typeStr = adsbTypes[tc]
 	}
 	return int(tc), typeStr
 }
@@ -55,12 +55,14 @@ func getAdsbVelocity(data []byte) AdsbVelocity {
 
 	sVR := data[4] & 0x08 >> 3
 	vr := (int(data[4]) & 0x07 << 6) | (int(data[5]) & 0xfc >> 2)
-	vr = (vr - 1) * 64
-	if sVR == 1 {
-		vr = -1 * vr
+	if vr != 0 {
+		result.VerticalRateAvailable = true
+		vr = (vr - 1) * 64
+		if sVR == 1 {
+			vr = -1 * vr
+		}
+		result.VerticalRate = vr
 	}
-
-	result.VerticalRate = vr
 
 	return result
 }

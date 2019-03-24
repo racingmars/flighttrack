@@ -25,5 +25,16 @@ func (h ConsoleHandler) SetIdentity(icaoID, callsign string, change bool) {
 	}
 }
 
-func (h ConsoleHandler) AddTrackPoint(icaoID, trackPoint *tracker.TrackLog) {
+func (h ConsoleHandler) AddTrackPoint(icaoID string, trackPoint tracker.TrackLog) {
+	fmt.Printf("New track log for %s.", icaoID)
+	if trackPoint.SpeedValid {
+		fmt.Printf(" Speed %d.", trackPoint.Speed)
+	}
+	if trackPoint.HeadingValid {
+		fmt.Printf(" Heading: %d.", trackPoint.Heading)
+	}
+	if trackPoint.VSValid {
+		fmt.Printf(" VS: %d.", trackPoint.VS)
+	}
+	fmt.Printf("\n")
 }

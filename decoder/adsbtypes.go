@@ -23,14 +23,15 @@ const (
 )
 
 type AdsbVelocity struct {
-	TC               int
-	ST               int
-	IntentChange     bool
-	SpeedType        SpeedType
-	Speed            int
-	HeadingAvailable bool
-	Heading          int
-	VerticalRate     int
+	TC                    int
+	ST                    int
+	IntentChange          bool
+	SpeedType             SpeedType
+	Speed                 int
+	HeadingAvailable      bool
+	Heading               int
+	VerticalRateAvailable bool
+	VerticalRate          int
 }
 
 type AdsbPosition struct {
@@ -59,6 +60,7 @@ const (
 )
 
 var adsbTypes = []adsbMessageType{
+	msgUnknown,
 	msgAircraftID,
 	msgAircraftID,
 	msgAircraftID,
