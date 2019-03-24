@@ -3,6 +3,7 @@ package decoder
 import (
 	"fmt"
 	"math"
+	"os"
 	"time"
 )
 
@@ -50,7 +51,7 @@ func getAdsbVelocity(data []byte) AdsbVelocity {
 	case 3:
 		fillAdsbVelocityAirspeed(data, &result)
 	default:
-		panic(fmt.Errorf("Bad velocity subtype: %d", result.ST))
+		fmt.Fprintf(os.Stderr, "Unexpected velocity subtype: %d\n", result.ST)
 	}
 
 	sVR := data[4] & 0x08 >> 3

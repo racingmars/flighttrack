@@ -1,0 +1,95 @@
+package main
+
+import (
+	"flag"
+	"fmt"
+	"log"
+	"os"
+	"runtime"
+	"runtime/pprof"
+	"time"
+
+	"github.com/racingmars/flighttrack/consolehandler"
+	"github.com/racingmars/flighttrack/decoder"
+	"github.com/racingmars/flighttrack/tracker"
+
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
+)
+
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to `file`")
+var memprofile = flag.String("memprofile", "", "write memory profile to `file`")
+
+func main() {
+	flag.Parse()
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal("could not create CPU profile: ", err)
+		}
+		defer f.Close()
+		if err := pprof.StartCPUProfile(f); err != nil {
+			log.Fatal("could not start CPU profile: ", err)
+		}
+		defer pprof.StopCPUProfile()
+	}
+
+	db, err := getConnection()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	loadRows(db)
+
+	if *memprofile != "" {
+		f, err := os.Create(*memprofile)
+		if err != nil {
+			log.Fatal("could not create memory profile: ", err)
+		}
+		defer f.Close()
+		runtime.GC() // get up-to-date statistics
+		if err := pprof.WriteHeapProfile(f); err != nil {
+			log.Fatal("could not write memory profile: ", err)
+		}
+	}
+}
+
+func getConnection() (*sqlx.DB, error) {
+	connStr, ok := os.LookupEnv("DBURL")
+	if !ok {
+		return nil, fmt.Errorf("DBURL environment variable not set")
+	}
+	db, err := sqlx.Connect("postgres", connStr)
+	return db, err
+}
+
+type Message struct {
+	Message []byte    `db:"message"`
+	Time    time.Time `db:"created_at"`
+}
+
+func loadRows(db *sqlx.DB) {
+	rows, err := db.Queryx("SELECT message, created_at FROM raw_message ORDER BY id;")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	tracker := tracker.New(new(consolehandler.ConsoleHandler), false)
+	defer tracker.CloseAllFlights()
+
+	msg := Message{}
+
+	for rows.Next() {
+		err = rows.StructScan(&msg)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		icao, decoded := decoder.DecodeMessage(msg.Message)
+		if icao != "" && icao != "000000" {
+			tracker.Message(icao, msg.Time, decoded)
+		}
+	}
+}
