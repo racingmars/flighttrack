@@ -14,6 +14,7 @@ const reportMinInterval = 5 * time.Second
 const headingEpsilon = 5
 const speedEpsilon = 10
 const vsEpsilon = 100
+const altitudeEpsilon = 100
 
 type FlightHandler interface {
 	NewFlight(icaoID string, firstSeen time.Time)
@@ -170,6 +171,17 @@ func (t *Tracker) handleAdsbVelocity(icaoID string, flt *flight, tm time.Time, m
 
 func (t *Tracker) handleAdsbPosition(icaoID string, flt *flight, tm time.Time, msg *decoder.AdsbPosition) {
 	reportable := false
+	flt.Current.Time = tm
+
+	if !flt.Current.AltitudeValid {
+		flt.Current.AltitudeValid = true
+		reportable = true
+	}
+	flt.Current.Altitude = msg.Altitude
+	difference := int(math.Abs((float64(flt.Current.Altitude - flt.Last.Altitude))))
+	if difference > altitudeEpsilon {
+		reportable = true
+	}
 
 	if reportable {
 		t.report(icaoID, flt, tm)

@@ -36,5 +36,8 @@ func (h ConsoleHandler) AddTrackPoint(icaoID string, trackPoint tracker.TrackLog
 	if trackPoint.VSValid {
 		fmt.Printf(" VS: %d.", trackPoint.VS)
 	}
+	if trackPoint.AltitudeValid {
+		fmt.Printf(" Alt: %d.", trackPoint.Altitude)
+	}
 	fmt.Printf("\n")
 }

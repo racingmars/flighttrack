@@ -118,11 +118,27 @@ func getAdsbPosition(msg []byte) AdsbPosition {
 	result.TC = int(msg[0] & 0xF8 >> 3)
 	result.SS = int(msg[0] & 0x06 >> 1)
 
-	alt := (int(msg[1]) & 0xfe << 3) | (int(msg[2]) & 0xf0 >> 4)
+	var alt int
 	q := msg[1] & 0x01
 	if q == 1 {
+		alt = (int(msg[1]) & 0xfe << 3) | (int(msg[2]) & 0xf0 >> 4)
 		result.Altitude = alt*25 - 1000
 	} else {
+		// The altitude bits are encoded in the following order:
+		// C1 A1 C2 A2 C4 A4 B1 [Q] B2 D2 B4 D4
+		// And need to be rearranged to:
+		// D2 D4 A1 A2 A4 B1 B2 B4 C1 C2 C4
+		alt = int(msg[2]&0x40)<<4 | // D2
+			int(msg[2]&0x10)<<5 | // D4
+			int(msg[1]&0x40)<<2 | // A1
+			int(msg[1]&0x10)<<3 | // A2
+			int(msg[1]&0x04)<<4 | // A4
+			int(msg[1]&0x02)<<5 | // B1
+			int(msg[2]&0x02)>>3 | // B2
+			int(msg[2]&0x20)>>2 | // B4
+			int(msg[1]&0x80)>>5 | // C1
+			int(msg[1]&0x20)>>4 | // C2
+			int(msg[1]&0x08)>>3 // C4
 		result.Altitude = gillhamToAltitude(alt)
 	}
 

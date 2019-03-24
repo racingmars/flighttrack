@@ -46,6 +46,14 @@ func TestAltitude(t *testing.T) {
 	}
 }
 
+func TestAltitudeQZero(t *testing.T) {
+	msg, _ := hex.DecodeString("59a6a5b819fde2e7cfb1")
+	result := getAdsbPosition(msg)
+	if result.Altitude != 6100 {
+		t.Errorf("Bad altitude: %d should be 6100", result.Altitude)
+	}
+}
+
 func TestPosition(t *testing.T) {
 	msg, _ := hex.DecodeString("8D40621D58C382D690C8AC2863A7")
 	resultEven := getAdsbPosition(msg[4:])
