@@ -6,6 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog/log"
 
+	"github.com/racingmars/flighttrack/decoder"
 	"github.com/racingmars/flighttrack/tracker"
 )
 
@@ -69,7 +70,7 @@ func (h *handler) CloseFlight(icaoID string, lastSeen time.Time, messages int) {
 	h.batchCount++
 }
 
-func (h *handler) SetIdentity(icaoID, callsign string, change bool) {
+func (h *handler) SetIdentity(icaoID, callsign string, category decoder.AircraftType, change bool) {
 	var err error
 	id, ok := h.idmap[icaoID]
 	if !ok {
@@ -78,13 +79,13 @@ func (h *handler) SetIdentity(icaoID, callsign string, change bool) {
 	}
 
 	if change {
-		_, err = h.db.Exec("UPDATE flight SET callsign=$1, multicall=true WHERE id=$2", callsign, id)
+		_, err = h.db.Exec("UPDATE flight SET callsign=$1, category=$2, multicall=true WHERE id=$3", callsign, category, id)
 	} else {
-		_, err = h.db.Exec("UPDATE flight SET callsign=$1 WHERE id=$2", callsign, id)
+		_, err = h.db.Exec("UPDATE flight SET callsign=$1, category=$2 WHERE id=$3", callsign, category, id)
 	}
 
 	if err != nil {
-		log.Error().Err(err).Msgf("setting callsign for flight %s (%d)", icaoID, id)
+		log.Error().Err(err).Msgf("setting callsign for flight %s/%d (%d)", icaoID, category, id)
 	}
 	h.batchCount++
 }

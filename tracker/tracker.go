@@ -20,7 +20,7 @@ const distanceEpsilonNM = 5
 type FlightHandler interface {
 	NewFlight(icaoID string, firstSeen time.Time)
 	CloseFlight(icaoID string, lastSeen time.Time, messages int)
-	SetIdentity(icaoID, callsign string, change bool)
+	SetIdentity(icaoID, callsign string, category decoder.AircraftType, change bool)
 	AddTrackPoint(icaoID string, trackPoint TrackLog)
 }
 
@@ -32,19 +32,16 @@ type Tracker struct {
 }
 
 type flight struct {
-	IcaoID          string
-	FirstSeen       time.Time
-	LastSeen        time.Time
-	MessageCount    int
-	Callsign        *string
-	Last            TrackLog
-	Current         TrackLog
-	pendingSpeed    bool
-	pendingPosition bool
-	pendingSquak    bool
-	pendingAltitude bool
-	evenFrame       *decoder.AdsbPosition
-	oddFrame        *decoder.AdsbPosition
+	IcaoID       string
+	FirstSeen    time.Time
+	LastSeen     time.Time
+	MessageCount int
+	Callsign     *string
+	Category     decoder.AircraftType
+	Last         TrackLog
+	Current      TrackLog
+	evenFrame    *decoder.AdsbPosition
+	oddFrame     *decoder.AdsbPosition
 }
 
 type TrackLog struct {
@@ -62,6 +59,7 @@ type TrackLog struct {
 	SpeedValid    bool
 	Speed         int
 	SpeedType     decoder.SpeedType
+	SquakValid    bool
 	Squak         string
 }
 
@@ -87,11 +85,13 @@ func (t *Tracker) Message(icaoID string, tm time.Time, msg interface{}) {
 	case *decoder.AdsbIdentification:
 		if flt.Callsign == nil {
 			flt.Callsign = &v.Callsign
-			t.handlers.SetIdentity(icaoID, *flt.Callsign, false)
+			flt.Category = v.Type
+			t.handlers.SetIdentity(icaoID, *flt.Callsign, flt.Category, false)
 		}
-		if *flt.Callsign != v.Callsign {
+		if *flt.Callsign != v.Callsign || flt.Category != v.Type {
 			flt.Callsign = &v.Callsign
-			t.handlers.SetIdentity(icaoID, *flt.Callsign, true)
+			flt.Category = v.Type
+			t.handlers.SetIdentity(icaoID, *flt.Callsign, flt.Category, true)
 		}
 	case *decoder.AdsbVelocity:
 		t.handleAdsbVelocity(icaoID, flt, tm, v)
@@ -231,7 +231,7 @@ func (t *Tracker) sweepIfNeeded(tm time.Time) {
 }
 
 func (t *Tracker) sweep(tm time.Time) {
-	cutoff := time.Now().Add(-decayTime)
+	cutoff := tm.Add(-decayTime)
 	for id := range t.flights {
 		if t.flights[id].LastSeen.Before(cutoff) {
 			// it's been too long since we've seen this flight

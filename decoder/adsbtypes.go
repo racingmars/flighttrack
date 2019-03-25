@@ -2,10 +2,34 @@ package decoder
 
 import "time"
 
+type AircraftType int
+
+const (
+	ACTypeNoInfo AircraftType = iota
+	ACTypeLight
+	ACTypeSmall
+	ACTypeLarge
+	ACTypeHighVortexLarge
+	ACTypeHeavy
+	ACTypeHighPerformance
+	ACTypeRotocraft
+	ACTypeGlider
+	ACTypeLighterThanAir
+	ACTypeParachutist
+	ACTypeUltralight
+	ACTypeUAV
+	ACTypeSpaceVehicle
+	ACTypeSurfaceEmergency
+	ACTypeSurfaceService
+	ACTypeObstruction
+	ACTypeClusterObstacle
+	ACTypeLineObstacle
+	ACTypeUnknown
+)
+
 type AdsbIdentification struct {
-	TC       int
-	EC       int
 	Callsign string
+	Type     AircraftType
 }
 
 // SpeedType holds the type of reported speed

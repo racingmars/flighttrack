@@ -2,9 +2,10 @@ package decoder
 
 import (
 	"encoding/hex"
+	"time"
 )
 
-func DecodeMessage(msg []byte) (string, interface{}) {
+func DecodeMessage(msg []byte, tm time.Time) (string, interface{}) {
 	df, _ := GetDFCA(msg[0])
 	//fmt.Printf("DF/CA: %d/%d", df, ca)
 
@@ -43,7 +44,7 @@ func DecodeMessage(msg []byte) (string, interface{}) {
 		}
 
 		if typeStr == msgAirbornPosWithBaroAlt {
-			pos := getAdsbPosition(msg[4:])
+			pos := getAdsbPosition(msg[4:], tm)
 			//fmt.Printf(" | ALT: %dft", pos.Altitude)
 			//fmt.Printf(" | LatCPR: %6d | LonCPR: %6d | Frame: %d", pos.LatCPR, pos.LonCPR, pos.Frame)
 			return hex.EncodeToString(icaoid), &pos

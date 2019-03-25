@@ -69,7 +69,7 @@ type Message struct {
 }
 
 func loadRows(db *sqlx.DB) {
-	rows, err := db.Queryx("SELECT message, created_at FROM raw_message ORDER BY id;")
+	rows, err := db.Queryx("SELECT message, created_at FROM raw_message ORDER BY id")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -91,7 +91,7 @@ func loadRows(db *sqlx.DB) {
 			fmt.Println(err)
 			return
 		}
-		icao, decoded := decoder.DecodeMessage(msg.Message)
+		icao, decoded := decoder.DecodeMessage(msg.Message, msg.Time)
 		if icao != "" && icao != "000000" {
 			tracker.Message(icao, msg.Time, decoded)
 		}

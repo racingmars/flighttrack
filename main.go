@@ -28,7 +28,7 @@ func main() {
 			log.Fatal(startoffset, err)
 		}
 		//fmt.Println(hex.EncodeToString(msg.Message))
-		icao, decoded := decoder.DecodeMessage(msg.Message)
+		icao, decoded := decoder.DecodeMessage(msg.Message, time.Now().UTC())
 		if icao != "" && icao != "000000" {
 			tracker.Message(icao, time.Now(), decoded)
 		}

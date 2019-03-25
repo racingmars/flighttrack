@@ -18,8 +18,73 @@ func getADSBType(b byte) (int, adsbMessageType) {
 
 func getAdsbIdentification(data []byte) AdsbIdentification {
 	result := AdsbIdentification{}
-	result.TC = int(data[0] & 0xF8 >> 3)
-	result.EC = int(data[0] & 0x07)
+	typecode := int(data[0] & 0xF8 >> 3)
+	emittercat := int(data[0] & 0x07)
+
+	// Format type and aircraft category from ICAO Doc 9871 Table A-2-8
+	switch typecode {
+	case 1: // category set D
+		result.Type = ACTypeUnknown
+	case 2: // category set C
+		switch emittercat {
+		case 0:
+			result.Type = ACTypeNoInfo
+		case 1:
+			result.Type = ACTypeSurfaceEmergency
+		case 2:
+			result.Type = ACTypeSurfaceService
+		case 3:
+			result.Type = ACTypeObstruction
+		case 4:
+			result.Type = ACTypeClusterObstacle
+		case 5:
+			result.Type = ACTypeLineObstacle
+		default:
+			result.Type = ACTypeUnknown
+		}
+	case 3: // category set B
+		switch emittercat {
+		case 0:
+			result.Type = ACTypeNoInfo
+		case 1:
+			result.Type = ACTypeGlider
+		case 2:
+			result.Type = ACTypeLighterThanAir
+		case 3:
+			result.Type = ACTypeParachutist
+		case 4:
+			result.Type = ACTypeUltralight
+		case 6:
+			result.Type = ACTypeUAV
+		case 7:
+			result.Type = ACTypeSpaceVehicle
+		default:
+			result.Type = ACTypeUnknown
+		}
+	case 4: // category set A
+		switch emittercat {
+		case 0:
+			result.Type = ACTypeNoInfo
+		case 1:
+			result.Type = ACTypeLight
+		case 2:
+			result.Type = ACTypeSmall
+		case 3:
+			result.Type = ACTypeLarge
+		case 4:
+			result.Type = ACTypeHighVortexLarge
+		case 5:
+			result.Type = ACTypeHeavy
+		case 6:
+			result.Type = ACTypeHighPerformance
+		case 7:
+			result.Type = ACTypeRotocraft
+		default:
+			result.Type = ACTypeUnknown
+		}
+	default:
+		result.Type = ACTypeUnknown
+	}
 
 	cs1raw := data[1] & 0xfc >> 2
 	cs2raw := data[1]&0x03<<4 | data[2]&0xf0>>4
@@ -114,8 +179,8 @@ func fillAdsbVelocityAirspeed(data []byte, result *AdsbVelocity) {
 	}
 }
 
-func getAdsbPosition(msg []byte) AdsbPosition {
-	result := AdsbPosition{Timestamp: time.Now()}
+func getAdsbPosition(msg []byte, tm time.Time) AdsbPosition {
+	result := AdsbPosition{Timestamp: tm}
 	result.TC = int(msg[0] & 0xF8 >> 3)
 	result.SS = int(msg[0] & 0x06 >> 1)
 
