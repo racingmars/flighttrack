@@ -101,6 +101,7 @@ func (t *Tracker) Message(icaoID string, tm time.Time, msg interface{}) {
 			flt.Callsign = &v.Callsign
 			flt.Category = v.Type
 			t.handlers.SetIdentity(icaoID, *flt.Callsign, flt.Category, true)
+			t.report(icaoID, flt, tm, true)
 		}
 	case *decoder.AdsbVelocity:
 		t.handleAdsbVelocity(icaoID, flt, tm, v)
@@ -177,7 +178,7 @@ func (t *Tracker) handleAdsbVelocity(icaoID string, flt *flight, tm time.Time, m
 	}
 
 	if reportable {
-		t.report(icaoID, flt, tm)
+		t.report(icaoID, flt, tm, false)
 	}
 }
 
@@ -223,12 +224,12 @@ func (t *Tracker) handleAdsbPosition(icaoID string, flt *flight, tm time.Time, m
 	}
 
 	if reportable {
-		t.report(icaoID, flt, tm)
+		t.report(icaoID, flt, tm, false)
 	}
 }
 
-func (t *Tracker) report(icaoID string, flt *flight, tm time.Time) {
-	if !t.ForceReporting && flt.Last.Time.Add(reportMinInterval).After(flt.Current.Time) {
+func (t *Tracker) report(icaoID string, flt *flight, tm time.Time, force bool) {
+	if !force && !t.ForceReporting && flt.Last.Time.Add(reportMinInterval).After(flt.Current.Time) {
 		// We've too recently sent a previous position report.
 		return
 	}

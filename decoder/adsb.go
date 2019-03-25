@@ -1,10 +1,11 @@
 package decoder
 
 import (
-	"fmt"
 	"math"
-	"os"
+	"strings"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 func getADSBType(b byte) (int, adsbMessageType) {
@@ -95,8 +96,9 @@ func getAdsbIdentification(data []byte) AdsbIdentification {
 	cs7raw := data[5]&0xf<<2 | data[6]&0xf0>>6
 	cs8raw := data[6] & 0x3f
 
-	result.Callsign += string([]rune{charmap[cs1raw], charmap[cs2raw], charmap[cs3raw],
+	result.Callsign = string([]rune{charmap[cs1raw], charmap[cs2raw], charmap[cs3raw],
 		charmap[cs4raw], charmap[cs5raw], charmap[cs6raw], charmap[cs7raw], charmap[cs8raw]})
+	result.Callsign = strings.TrimSpace(result.Callsign)
 
 	return result
 }
@@ -116,7 +118,7 @@ func getAdsbVelocity(data []byte) AdsbVelocity {
 	case 3:
 		fillAdsbVelocityAirspeed(data, &result)
 	default:
-		fmt.Fprintf(os.Stderr, "Unexpected velocity subtype: %d\n", result.ST)
+		log.Warn().Msgf("Unexpected velocity subtype: %d", result.ST)
 	}
 
 	sVR := data[4] & 0x08 >> 3
@@ -219,8 +221,6 @@ const dLatEven float64 = 360.0 / 60.0
 const dLatOdd float64 = 360.0 / 59.0
 
 func CalcPosition(oddFrame, evenFrame AdsbPosition) (float64, float64, bool) {
-	//fmt.Printf("ELat(%d) OLat(%d) ELon(%d) OLon(%d)\n", evenFrame.LatCPR, oddFrame.LatCPR, evenFrame.LonCPR, oddFrame.LonCPR)
-
 	cprLatEven := float64(evenFrame.LatCPR) / 131072
 	cprLonEven := float64(evenFrame.LonCPR) / 131072
 	cprLatOdd := float64(oddFrame.LatCPR) / 131072

@@ -3,6 +3,8 @@ package decoder
 import (
 	"encoding/hex"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 func DecodeMessage(msg []byte, tm time.Time) (string, interface{}) {
@@ -13,6 +15,10 @@ func DecodeMessage(msg []byte, tm time.Time) (string, interface{}) {
 		icaoid := msg[1:4]
 		//fmt.Printf(", ICAO ID: %s", hex.EncodeToString(icaoid))
 
+		if !CheckCRC(msg) {
+			log.Warn().Msgf("parity failed for message from %s", hex.EncodeToString(icaoid))
+			return hex.EncodeToString(icaoid), nil
+		}
 		// if CheckCRC(msg) {
 		// 	fmt.Printf(", parity passed")
 		// } else {
