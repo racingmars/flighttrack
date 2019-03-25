@@ -8,7 +8,7 @@ import (
 )
 
 const sweepInterval = 30 * time.Second
-const decayTime = 120 * time.Second
+const decayTime = 5 * time.Minute
 const reportMinInterval = 5 * time.Second
 
 const headingEpsilon = 5
@@ -61,6 +61,9 @@ type TrackLog struct {
 	SpeedType     decoder.SpeedType
 	SquakValid    bool
 	Squak         string
+	IdentityValid bool
+	Callsign      string
+	Category      decoder.AircraftType
 }
 
 func New(handler FlightHandler, forceReporting bool) *Tracker {
@@ -83,6 +86,9 @@ func (t *Tracker) Message(icaoID string, tm time.Time, msg interface{}) {
 
 	switch v := msg.(type) {
 	case *decoder.AdsbIdentification:
+		flt.Current.IdentityValid = true
+		flt.Current.Callsign = v.Callsign
+		flt.Current.Category = v.Type
 		if flt.Callsign == nil {
 			flt.Callsign = &v.Callsign
 			flt.Category = v.Type
@@ -207,6 +213,10 @@ func (t *Tracker) handleAdsbPosition(icaoID string, flt *flight, tm time.Time, m
 				}
 			}
 		}
+		// Now that we've used the even and odd frames, discard them to ensure the next calculation
+		// is with fresh values.
+		flt.evenFrame = nil
+		flt.oddFrame = nil
 	}
 
 	if reportable {

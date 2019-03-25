@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/racingmars/flighttrack/decoder"
 	"github.com/racingmars/flighttrack/tracker"
 )
 
@@ -20,13 +21,13 @@ func (h *ConsoleHandler) CloseFlight(icaoID string, lastSeen time.Time, messages
 	delete(h.callsigns, icaoID)
 }
 
-func (h *ConsoleHandler) SetIdentity(icaoID, callsign string, change bool) {
+func (h *ConsoleHandler) SetIdentity(icaoID, callsign string, category decoder.AircraftType, change bool) {
 	if h.callsigns == nil {
 		h.callsigns = make(map[string]string)
 	}
 
 	h.callsigns[icaoID] = callsign
-	fmt.Printf("%8s: New callsign for %s", callsign, icaoID)
+	fmt.Printf("%8s: New callsign for %s, category %d", callsign, icaoID, category)
 	if change {
 		fmt.Printf("*** CHANGE ***")
 	}

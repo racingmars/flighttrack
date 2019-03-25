@@ -92,8 +92,8 @@ func (h *handler) SetIdentity(icaoID, callsign string, category decoder.Aircraft
 
 func (h *handler) AddTrackPoint(icaoID string, t tracker.TrackLog) {
 	if h.logstmt == nil {
-		stmt, err := h.currentTxn.Preparex(`INSERT INTO tracklog (flight_id, time, latitude, longitude, heading, speed, altitude, vs)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`)
+		stmt, err := h.currentTxn.Preparex(`INSERT INTO tracklog (flight_id, time, latitude, longitude, heading, speed, altitude, vs, callsign, category)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);`)
 		if err != nil {
 			log.Error().Err(err).Msgf("preparing tracklog statement")
 			return
@@ -109,6 +109,8 @@ func (h *handler) AddTrackPoint(icaoID string, t tracker.TrackLog) {
 
 	var heading, vs, altitude, speed *int
 	var latitude, longitude *float64
+	var callsign *string
+	var category *decoder.AircraftType
 
 	if t.HeadingValid {
 		heading = &t.Heading
@@ -126,8 +128,12 @@ func (h *handler) AddTrackPoint(icaoID string, t tracker.TrackLog) {
 		latitude = &t.Latitude
 		longitude = &t.Longitude
 	}
+	if t.IdentityValid {
+		callsign = &t.Callsign
+		category = &t.Category
+	}
 
-	_, err := h.logstmt.Exec(id, t.Time.UTC(), latitude, longitude, heading, speed, altitude, vs)
+	_, err := h.logstmt.Exec(id, t.Time.UTC(), latitude, longitude, heading, speed, altitude, vs, callsign, category)
 
 	if err != nil {
 		log.Error().Err(err).Msgf("adding track log for flight %s (%d)", icaoID, id)

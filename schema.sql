@@ -63,7 +63,9 @@ IF NOT EXISTS(SELECT * FROM schema_version WHERE version = 2) THEN
     speed     SMALLINT,
     altitude  INTEGER,
     vs        SMALLINT,
-    squak     VARCHAR(4)
+    squak     VARCHAR(4),
+    callsign  VARCHAR(8),
+    category  INT
   );
 
   INSERT INTO schema_version (version) VALUES (2);
