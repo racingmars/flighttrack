@@ -79,7 +79,8 @@ func (h *handler) SetIdentity(icaoID, callsign string, category decoder.Aircraft
 	}
 
 	if change {
-		_, err = h.db.Exec("UPDATE flight SET callsign=$1, category=$2, multicall=true WHERE id=$3", callsign, category, id)
+		// Keep the flight set to the original callsign we saw, but indicate we've seen a change
+		_, err = h.db.Exec("UPDATE flight SET multicall=true WHERE id=$1", id)
 	} else {
 		_, err = h.db.Exec("UPDATE flight SET callsign=$1, category=$2 WHERE id=$3", callsign, category, id)
 	}

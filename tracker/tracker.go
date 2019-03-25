@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/racingmars/flighttrack/decoder"
+
+	"github.com/rs/zerolog/log"
 )
 
 const sweepInterval = 30 * time.Second
@@ -95,6 +97,7 @@ func (t *Tracker) Message(icaoID string, tm time.Time, msg interface{}) {
 			t.handlers.SetIdentity(icaoID, *flt.Callsign, flt.Category, false)
 		}
 		if *flt.Callsign != v.Callsign || flt.Category != v.Type {
+			log.Warn().Msgf("Callsign change for %d. Was %s/%d now %s/%d", icaoID, flt.Callsign, flt.Category, v.Callsign, v.Type)
 			flt.Callsign = &v.Callsign
 			flt.Category = v.Type
 			t.handlers.SetIdentity(icaoID, *flt.Callsign, flt.Category, true)
