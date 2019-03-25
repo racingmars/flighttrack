@@ -1,15 +1,5 @@
 package decoder
 
-import (
-	"encoding/binary"
-)
-
-func GetDFCA(b byte) (int, int) {
-	df, _ := binary.Uvarint([]byte{(b & 0xF8) >> 3})
-	ca, _ := binary.Uvarint([]byte{b & 0x07})
-	return int(df), int(ca)
-}
-
 func CheckCRC(msg []byte) bool {
 	generator := []int{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1}
 	binmsg := bytesToBinary(msg)

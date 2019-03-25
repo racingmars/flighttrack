@@ -12,9 +12,9 @@ import (
 type handler struct {
 }
 
-func (h *handler) NewFlight(icaoID string, firstSeen time.Time)                {}
-func (h *handler) CloseFlight(icaoID string, lastSeen time.Time, messages int) {}
-func (h *handler) SetIdentity(icaoID, callsign string, change bool)            {}
+func (h *handler) NewFlight(icaoID string, firstSeen time.Time)                                    {}
+func (h *handler) CloseFlight(icaoID string, lastSeen time.Time, messages int)                     {}
+func (h *handler) SetIdentity(icaoID, callsign string, category decoder.AircraftType, change bool) {}
 func (h *handler) AddTrackPoint(icaoID string, trackPoint TrackLog) {
 	fmt.Printf("%8s:", icaoID)
 	if trackPoint.HeadingValid {
@@ -49,9 +49,9 @@ func TestPosition(t *testing.T) {
 
 	msgEven, _ := hex.DecodeString("8D75804B580FF2CF7E9BA6F701D0")
 	msgOdd, _ := hex.DecodeString("8D75804B580FF6B283EB7A157117")
-	icao, decoded := decoder.DecodeMessage(msgEven)
+	icao, decoded := decoder.DecodeMessage(msgEven, time.Now())
 	tracker.Message(icao, time.Now(), decoded)
-	icao, decoded = decoder.DecodeMessage(msgOdd)
+	icao, decoded = decoder.DecodeMessage(msgOdd, time.Now())
 	tracker.Message(icao, time.Now(), decoded)
 }
 

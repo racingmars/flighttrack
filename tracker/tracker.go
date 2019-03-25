@@ -61,8 +61,8 @@ type TrackLog struct {
 	SpeedValid    bool
 	Speed         int
 	SpeedType     decoder.SpeedType
-	SquakValid    bool
-	Squak         string
+	SquawkValid   bool
+	Squawk        string
 	IdentityValid bool
 	Callsign      string
 	Category      decoder.AircraftType
