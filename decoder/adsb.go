@@ -253,7 +253,7 @@ func CalcPosition(oddFrame, evenFrame AdsbPosition) (float64, float64, bool) {
 		ni := math.Max(float64(nl(latEven)), 1)
 		dLon := 360.0 / ni
 		m := math.Floor(cprLonEven*(float64(nl(latEven))-1) - cprLonOdd*float64(nl(latEven)) + 0.5)
-		lon = dLon*mod(m, ni) + cprLonEven
+		lon = dLon * (mod(m, ni) + cprLonEven)
 	} else {
 		ni := math.Max(float64(nl(latOdd))-1, 1)
 		dLon := 360.0 / ni
