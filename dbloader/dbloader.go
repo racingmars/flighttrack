@@ -81,42 +81,61 @@ func getConnection() (*sqlx.DB, error) {
 }
 
 type Message struct {
+	ID      int       `db:"id"`
 	Message []byte    `db:"message"`
 	Time    time.Time `db:"created_at"`
 }
 
 func loadRows(db *sqlx.DB) {
-	rows, err := db.Queryx("SELECT message, created_at FROM raw_message ORDER BY id")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
 	handler := newHandler(db)
 	defer handler.Close()
 	tracker := tracker.New(handler, false)
 	defer tracker.CloseAllFlights()
 
-	msg := Message{}
-	var total, batch int
+	var lastRawMessageID int
 
-	for rows.Next() {
-		total++
-		batch++
-		err = rows.StructScan(&msg)
+	var rows *sqlx.Rows
+	var err error
+
+	for {
+		if lastRawMessageID == 0 {
+			rows, err = db.Queryx("SELECT id, message, created_at FROM raw_message ORDER BY id")
+		} else {
+			rows, err = db.Queryx("SELECT id, message, created_at FROM raw_message WHERE id>$1 ORDER BY id", lastRawMessageID)
+		}
 		if err != nil {
-			fmt.Println(err)
+			log.Error().Err(err).Msg("couldn't query raw messages")
 			return
 		}
-		icao, decoded := decoder.DecodeMessage(msg.Message, msg.Time)
-		if icao != "" && icao != "000000" {
-			tracker.Message(icao, msg.Time, decoded)
+
+		msg := Message{}
+		var total, batch int
+		hadResult := false
+
+		for rows.Next() {
+			hadResult = true
+			total++
+			batch++
+			err = rows.StructScan(&msg)
+			if err != nil {
+				log.Error().Err(err).Msg("couldn't scan raw messages")
+				return
+			}
+			icao, decoded := decoder.DecodeMessage(msg.Message, msg.Time)
+			if icao != "" && icao != "000000" {
+				tracker.Message(icao, msg.Time, decoded)
+			}
+			if batch == 100000 {
+				log.Info().Msgf("processed %d messages", total)
+				batch = 0
+			}
+			lastRawMessageID = msg.ID
 		}
-		if batch == 100000 {
-			log.Info().Msgf("processed %d messages", total)
-			batch = 0
+
+		log.Info().Msgf("finished: processed %d messages", total)
+		if !hadResult {
+			// we're done
+			break
 		}
 	}
-
-	log.Info().Msgf("processed %d messages", total)
 }

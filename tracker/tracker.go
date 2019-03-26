@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"github.com/racingmars/flighttrack/decoder"
-
-	"github.com/rs/zerolog/log"
 )
 
 const sweepInterval = 30 * time.Second
@@ -34,16 +32,17 @@ type Tracker struct {
 }
 
 type flight struct {
-	IcaoID       string
-	FirstSeen    time.Time
-	LastSeen     time.Time
-	MessageCount int
-	Callsign     *string
-	Category     decoder.AircraftType
-	Last         TrackLog
-	Current      TrackLog
-	evenFrame    *decoder.AdsbPosition
-	oddFrame     *decoder.AdsbPosition
+	IcaoID        string
+	FirstSeen     time.Time
+	LastSeen      time.Time
+	MessageCount  int
+	Callsign      *string
+	Category      decoder.AircraftType
+	Last          TrackLog
+	Current       TrackLog
+	evenFrame     *decoder.AdsbPosition
+	oddFrame      *decoder.AdsbPosition
+	PendingChange bool
 }
 
 type TrackLog struct {
@@ -86,27 +85,15 @@ func (t *Tracker) Message(icaoID string, tm time.Time, msg interface{}) {
 	flt.LastSeen = tm
 	flt.MessageCount++
 
-	switch v := msg.(type) {
-	case *decoder.AdsbIdentification:
-		flt.Current.IdentityValid = true
-		flt.Current.Callsign = v.Callsign
-		flt.Current.Category = v.Type
-		if flt.Callsign == nil {
-			flt.Callsign = &v.Callsign
-			flt.Category = v.Type
-			t.handlers.SetIdentity(icaoID, *flt.Callsign, flt.Category, false)
+	if msg != nil {
+		switch v := msg.(type) {
+		case *decoder.AdsbIdentification:
+			t.handleAdsbIdentification(icaoID, flt, tm, v)
+		case *decoder.AdsbVelocity:
+			t.handleAdsbVelocity(icaoID, flt, tm, v)
+		case *decoder.AdsbPosition:
+			t.handleAdsbPosition(icaoID, flt, tm, v)
 		}
-		if *flt.Callsign != v.Callsign || flt.Category != v.Type {
-			log.Warn().Msgf("Callsign change for %s. Was %s/%d now %s/%d", icaoID, *flt.Callsign, flt.Category, v.Callsign, v.Type)
-			flt.Callsign = &v.Callsign
-			flt.Category = v.Type
-			t.handlers.SetIdentity(icaoID, *flt.Callsign, flt.Category, true)
-			t.report(icaoID, flt, tm, true)
-		}
-	case *decoder.AdsbVelocity:
-		t.handleAdsbVelocity(icaoID, flt, tm, v)
-	case *decoder.AdsbPosition:
-		t.handleAdsbPosition(icaoID, flt, tm, v)
 	}
 
 	t.sweepIfNeeded(tm)
@@ -114,8 +101,39 @@ func (t *Tracker) Message(icaoID string, tm time.Time, msg interface{}) {
 
 func (t *Tracker) CloseAllFlights() {
 	for id := range t.flights {
+		if t.flights[id].PendingChange {
+			t.report(id, t.flights[id], t.flights[id].LastSeen, true)
+		}
 		t.handlers.CloseFlight(id, t.flights[id].LastSeen, t.flights[id].MessageCount)
 		delete(t.flights, id)
+	}
+}
+
+func (t *Tracker) handleAdsbIdentification(icaoID string, flt *flight, tm time.Time, msg *decoder.AdsbIdentification) {
+	// If we already have an identification, and the new type is unknown (probably because it's a BDS2,0 message), use
+	// the existing type.
+	if flt.Current.IdentityValid && flt.Current.Category != decoder.ACTypeUnknown && msg.Type == decoder.ACTypeUnknown {
+		msg.Type = flt.Current.Category
+	}
+
+	flt.Current.Time = tm
+	flt.Current.IdentityValid = true
+	flt.Current.Callsign = msg.Callsign
+	flt.Current.Category = msg.Type
+	if flt.Callsign == nil {
+		flt.Callsign = &msg.Callsign
+		flt.Category = msg.Type
+		t.handlers.SetIdentity(icaoID, *flt.Callsign, flt.Category, false)
+		t.report(icaoID, flt, tm, true)
+		return
+	}
+	if *flt.Callsign != msg.Callsign || flt.Category != msg.Type {
+		//log.Warn().Msgf("Callsign change for %s. Was %s/%d now %s/%d", icaoID, *flt.Callsign, flt.Category, msg.Callsign, msg.Type)
+		flt.Callsign = &msg.Callsign
+		flt.Category = msg.Type
+		t.handlers.SetIdentity(icaoID, *flt.Callsign, flt.Category, true)
+		t.report(icaoID, flt, tm, true)
+		return
 	}
 }
 
@@ -128,6 +146,7 @@ func (t *Tracker) handleAdsbVelocity(icaoID string, flt *flight, tm time.Time, m
 		flt.Current.HeadingValid = true
 		flt.Current.Heading = msg.Heading
 		reportable = true
+		flt.PendingChange = true
 	} else if msg.HeadingAvailable {
 		flt.Current.Heading = msg.Heading
 		// Normalize headings to be +/- 180 degrees
@@ -143,6 +162,9 @@ func (t *Tracker) handleAdsbVelocity(icaoID string, flt *flight, tm time.Time, m
 		if difference > headingEpsilon {
 			reportable = true
 		}
+		if difference > 0 {
+			flt.PendingChange = true
+		}
 	}
 
 	if !flt.Current.SpeedValid {
@@ -151,12 +173,16 @@ func (t *Tracker) handleAdsbVelocity(icaoID string, flt *flight, tm time.Time, m
 		flt.Current.Speed = msg.Speed
 		flt.Current.SpeedType = msg.SpeedType
 		reportable = true
+		flt.PendingChange = true
 	} else {
 		flt.Current.Speed = msg.Speed
 		flt.Current.SpeedType = msg.SpeedType
 		difference := int(math.Abs((float64(flt.Current.Speed - flt.Last.Speed))))
 		if difference > speedEpsilon {
 			reportable = true
+		}
+		if difference > 0 {
+			flt.PendingChange = true
 		}
 	}
 
@@ -169,11 +195,15 @@ func (t *Tracker) handleAdsbVelocity(icaoID string, flt *flight, tm time.Time, m
 		flt.Current.VSValid = true
 		flt.Current.VS = vs
 		reportable = true
+		flt.PendingChange = true
 	} else if msg.VerticalRateAvailable {
 		flt.Current.VS = vs
 		difference := int(math.Abs((float64(flt.Current.VS - flt.Last.VS))))
 		if difference > vsEpsilon {
 			reportable = true
+		}
+		if difference > 0 {
+			flt.PendingChange = true
 		}
 	}
 
@@ -189,11 +219,15 @@ func (t *Tracker) handleAdsbPosition(icaoID string, flt *flight, tm time.Time, m
 	if !flt.Current.AltitudeValid {
 		flt.Current.AltitudeValid = true
 		reportable = true
+		flt.PendingChange = true
 	}
 	flt.Current.Altitude = msg.Altitude
 	difference := int(math.Abs((float64(flt.Current.Altitude - flt.Last.Altitude))))
 	if difference > altitudeEpsilon {
 		reportable = true
+	}
+	if difference > 0 {
+		flt.PendingChange = true
 	}
 
 	if msg.Frame == 0 {
@@ -207,10 +241,11 @@ func (t *Tracker) handleAdsbPosition(icaoID string, flt *flight, tm time.Time, m
 			flt.Current.Longitude = lon
 			flt.Current.Latitude = lat
 			if flt.Current.Longitude != flt.Last.Longitude || flt.Current.Latitude != flt.Last.Latitude {
-				reportable = true
+				flt.PendingChange = true
 			}
 			if !flt.Last.PositionValid {
 				reportable = true
+				flt.PendingChange = true
 			} else {
 				if math.Abs(distanceNM(lat, flt.Last.Latitude, lon, flt.Last.Longitude)) >= distanceEpsilonNM {
 					reportable = true
@@ -234,7 +269,8 @@ func (t *Tracker) report(icaoID string, flt *flight, tm time.Time, force bool) {
 		return
 	}
 	flt.Last = flt.Current
-	flt.Last.Time = tm
+	//flt.Last.Time = tm
+	flt.PendingChange = false
 	t.handlers.AddTrackPoint(icaoID, flt.Last)
 }
 

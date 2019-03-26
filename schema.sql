@@ -49,8 +49,7 @@ IF NOT EXISTS(SELECT * FROM schema_version WHERE version = 2) THEN
     first_seen    TIMESTAMP NOT NULL,
     last_seen     TIMESTAMP,
     multicall     BOOLEAN DEFAULT FALSE,
-    msg_count     INTEGER,
-    created_at    TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+    msg_count     INTEGER
   );
 
   CREATE TABLE tracklog (
@@ -66,6 +65,12 @@ IF NOT EXISTS(SELECT * FROM schema_version WHERE version = 2) THEN
     squawk    VARCHAR(4),
     callsign  VARCHAR(8),
     category  INT
+  );
+
+  CREATE TABLE parameters (
+    name      TEXT NOT NULL PRIMARY KEY,
+    value_txt TEXT,
+    value_int INTEGER
   );
 
   INSERT INTO schema_version (version) VALUES (2);

@@ -56,17 +56,14 @@ func DecodeMessage(msg []byte, tm time.Time) (string, interface{}) {
 			//fmt.Printf(" | LatCPR: %6d | LonCPR: %6d | Frame: %d", pos.LatCPR, pos.LonCPR, pos.Frame)
 			return hex.EncodeToString(icaoid), &pos
 		}
-
 	} else if df == 20 || df == 21 {
 		crc := CalcCRC(msg)
 		origcrc := msg[len(msg)-3:]
 		icaoid := []byte{crc[0] ^ origcrc[0], crc[1] ^ origcrc[1], crc[2] ^ origcrc[2]}
 		if msg[4] == 0x20 {
-			fmt.Printf("Potential aircraft identification: ")
 			ident := getAdsbIdentification(msg[4:])
-			fmt.Printf("%s\n", ident.Callsign)
-		} else {
-			tryTypeDecode(icaoid, msg[4:])
+			ident.Type = ACTypeUnknown
+			return hex.EncodeToString(icaoid), &ident
 		}
 
 		//tryTypeDecode(icaoid, msg[4:])
