@@ -114,7 +114,7 @@ func (t *Tracker) CloseAllFlights() {
 func (t *Tracker) handleAdsbIdentification(icaoID string, flt *flight, tm time.Time, msg *decoder.AdsbIdentification) {
 	// If there are bad characters, ignore.
 	if strings.Contains(msg.Callsign, "#") {
-		log.Warn().Msgf("For %s, callsign %s is invalid", icaoID, msg.Callsign)
+		log.Warn().Msgf("For %s, callsign %s/%d is invalid", icaoID, msg.Callsign, msg.Type)
 		return
 	}
 
