@@ -2,20 +2,22 @@ package tracker
 
 import (
 	"math"
+	"strings"
 	"time"
 
 	"github.com/racingmars/flighttrack/decoder"
+	"github.com/rs/zerolog/log"
 )
 
 const sweepInterval = 30 * time.Second
 const decayTime = 5 * time.Minute
 const reportMinInterval = 5 * time.Second
 
-const headingEpsilon = 5
+const headingEpsilon = 10
 const speedEpsilon = 10
-const vsEpsilon = 100
-const altitudeEpsilon = 100
-const distanceEpsilonNM = 5
+const vsEpsilon = 150
+const altitudeEpsilon = 200
+const distanceEpsilonNM = 10
 
 type FlightHandler interface {
 	NewFlight(icaoID string, firstSeen time.Time)
@@ -110,6 +112,12 @@ func (t *Tracker) CloseAllFlights() {
 }
 
 func (t *Tracker) handleAdsbIdentification(icaoID string, flt *flight, tm time.Time, msg *decoder.AdsbIdentification) {
+	// If there are bad characters, ignore.
+	if strings.Contains(msg.Callsign, "#") {
+		log.Warn().Msgf("For %s, callsign %s is invalid", icaoID, msg.Callsign)
+		return
+	}
+
 	// If we already have an identification, and the new type is unknown (probably because it's a BDS2,0 message), use
 	// the existing type.
 	if flt.Current.IdentityValid && flt.Current.Category != decoder.ACTypeUnknown && msg.Type == decoder.ACTypeUnknown {
@@ -120,6 +128,8 @@ func (t *Tracker) handleAdsbIdentification(icaoID string, flt *flight, tm time.T
 	flt.Current.IdentityValid = true
 	flt.Current.Callsign = msg.Callsign
 	flt.Current.Category = msg.Type
+
+	// First time we have a callsign for this flight
 	if flt.Callsign == nil {
 		flt.Callsign = &msg.Callsign
 		flt.Category = msg.Type
@@ -127,6 +137,16 @@ func (t *Tracker) handleAdsbIdentification(icaoID string, flt *flight, tm time.T
 		t.report(icaoID, flt, tm, true)
 		return
 	}
+
+	// First time we have a good category for this flight
+	if *flt.Callsign == msg.Callsign && flt.Category == decoder.ACTypeUnknown && msg.Type != decoder.ACTypeUnknown {
+		flt.Category = msg.Type
+		t.handlers.SetIdentity(icaoID, *flt.Callsign, flt.Category, false)
+		t.report(icaoID, flt, tm, true)
+		return
+	}
+
+	// This is a change in callsign or category
 	if *flt.Callsign != msg.Callsign || flt.Category != msg.Type {
 		//log.Warn().Msgf("Callsign change for %s. Was %s/%d now %s/%d", icaoID, *flt.Callsign, flt.Category, msg.Callsign, msg.Type)
 		flt.Callsign = &msg.Callsign
