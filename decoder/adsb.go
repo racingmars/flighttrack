@@ -220,6 +220,9 @@ func getAdsbPosition(msg []byte, tm time.Time) AdsbPosition {
 const dLatEven float64 = 360.0 / 60.0
 const dLatOdd float64 = 360.0 / 59.0
 
+// See, for example,
+// http://www.lll.lu/~edward/edward/adsb/DecodingADSBposition.html
+// https://mode-s.org/decode/adsb/compact-position-report.html
 func CalcPosition(oddFrame, evenFrame AdsbPosition) (float64, float64, bool) {
 	cprLatEven := float64(evenFrame.LatCPR) / 131072
 	cprLonEven := float64(evenFrame.LonCPR) / 131072
