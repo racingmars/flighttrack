@@ -78,3 +78,28 @@ END IF;
 END;
 $$;
 -- End Version 2
+
+-- Version 3: Aircraft registration data
+DO
+$$
+BEGIN
+IF NOT EXISTS(SELECT * FROM schema_version WHERE version = 3) THEN
+  CREATE TABLE registration (
+    icao         CHAR(6) PRIMARY KEY,
+    registration VARCHAR(10) NOT NULL,
+    typecode     VARCHAR(10),
+    mfg          TEXT,
+    model        TEXT,
+    year         INTEGER,
+    owner        TEXT,
+    city         TEXT,
+    state        TEXT,
+    country      TEXT,
+    source       VARCHAR(10) NOT NULL
+  );
+
+  INSERT INTO schema_version (version) VALUES (3);
+END IF;
+END;
+$$;
+-- End Version 3

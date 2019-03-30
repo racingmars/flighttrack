@@ -1,0 +1,75 @@
+
+      This licence agreement is between Her Majesty the Queen in Right of Canada, as represented by the Ministers of Participating Departments (Agriculture and Agri-food Canada, Citizenship and Immigration (Canada), Environment Canada, Fisheries and Oceans Canada, Library and Archives Canada,  Natural Resources Canada, National Research Canada and Statistics Canada, collectively referred to herein as "Canada") and you.
+THE FOLLOWING ARE TERMS AND CONDITIONS GOVERNING YOUR USE OF THIS DATA. BY BROWSING THROUGH, DOWNLOADING, ACCESSING OR OTHERWISE USING THIS DATA, YOU ACKNOWLEDGE THAT YOU HAVE READ, UNDERSTOOD AND AGREE TO BE LEGALLY BOUND BY THE TERMS AND CONDITIONS SET OUT BELOW. IF YOU DO NOT AGREE TO THESE TERMS AND CONDITIONS, YOU MAY NOT BROWSE THROUGH, DOWNLOAD, ACCESS OR OTHERWISE USE THIS DATA.
+CANADA MAY MODIFY THIS AGREEMENT AT ANY TIME, AND SUCH MODIFICATIONS SHALL BE EFFECTIVE IMMEDIATELY UPON POSTING OF THE MODIFIED AGREEMENT ON THE OPEN DATA SITE. YOUR CONTINUED ACCESS OR USE OF THIS DATA SHALL BE DEEMED YOUR CONCLUSIVE ACCEPTANCE OF THE MODIFIED AGREEMENT.
+
+BACKGROUND:
+1. Canada is the owner, or licencee, of Intellectual Property Rights in and to data made available through the GC Open Data Portal;
+2. You are interested in acquiring certain rights to the data made available through the GC Open Data Portal, in accordance with the terms and conditions contained herein; and
+3. Canada is willing to grant you certain rights to the data made available through the GC Open Data Portal, in accordance with the terms and conditions contained herein;
+
+1.0 DEFINITIONS
+1.1 "Agreement" means this no-fee unrestricted use web wrap licence agreement, its recitals and schedules.
+1.2 "Canada's Data" means that Data contained in or made available through the GC Open Data Portal or contained in or made available through an Open Data site of a participating department, the Intellectual Property Rights of which vest in Canada.  
+1.3 "Data" means any expressed original data fixed in a form giving rise to Intellectual Property Rights.
+1.4  "GC Open Data Portal" means the data, metadata, and related documentation provided  by Canada to you in accordance with terms and conditions of this agreement.  The GC Open Data Portal contains Canada’s Data and may contain Data the Intellectual Property Rights of which vest with third parties and which is licenced to Canada.
+1.5 "Intellectual Property Rights" means any and all intellectual property rights recognized by the law, including but not limited to, intellectual property rights protected through legislation.
+1.6 "Value-Added Product" means any product, system, sub-system, device, component, material or software you develop or manufacture, or cause to be developed or manufactured, in the exercise of your rights under this Agreement. Value-Added Products may be developed or manufactured by constructing, deriving, developing, adapting, incorporating or by any other means using the data made available through the GC Open Data Portal, in whole or in part.
+
+2.0 INTELLECTUAL PROPERTY RIGHTS
+2.1 Subject to section 2.2 hereof, and without affecting Canada's Intellectual Property Rights in and to Canada's Data and any third-party's Intellectual Property Rights in Data contained in the GC Open Data Portal, all Intellectual Property Rights in and to any modification, translation or further development made by you to the data made available through the GC Open Data Portal in the exercise of your rights under this Agreement shall vest in you or in such person as you shall decide.
+2.2 All Intellectual Property Rights in Canada's Data shall remain the property of Canada. All Intellectual Property Rights in Data contained in the GC Open Data Portal which is not Canada’s Data shall remain the property of the respective content owners and may be protected by copyright, other intellectual property laws, common law or international treaties.
+
+3.0 LICENCE GRANT
+3.1 Subject to this Agreement, Canada hereby grants you a royalty-free, non-exclusive, world-wide, non-assignable licence to use, reproduce, extract, modify, translate, further develop and distribute the data made available through the GC Open Data Portal, and to manufacture and licence Value-Added Products, and to sublicence any or all of such rights, PROVIDED:
+(a) all reproductions of the data made available through the GC Open Data Portal shall include the notice provided in section 4.1 and shall carry the caveat contained in section 6.1 hereof;
+(b) the Intellectual Property Rights arising from any modification, improvement, development or translation of the data made available through the GC Open Data Portal, or from the manufacture of Value-Added Products, effected by or for you, shall vest in you or in such person as you decide. 
+(c) all distributions of Value-Added Products and of the data made available through the GC Open Data Portal, in whole or in part, and any sublicence by you of your rights hereunder, shall be evidenced by a written agreement consistent with this Agreement; and
+(d) you shall not disassemble, decompile except for the specific purpose of recompiling for software compatibility, or in any way attempt to reverse engineer the data made available through the GC Open Data Portal or any part thereof, and you shall not merge or link the data made available through the GC Open Data Portal with any product or database for the purpose of identifying an individual, family or household or in such a fashion that gives the appearance that you may have received or had access to, information held by Canada about any identifiable individual, family or household or about an  organization or business.
+
+4.0 PROTECTION AND ACKNOWLEDGEMENT OF SOURCE
+4.1 You shall include and maintain on all reproductions of the data made available through the GC Open Data Portal, produced pursuant to section 3 above, the following notice:
+Reproduced and distributed with the permission of the Government of Canada.
+4.2 Where any of the data made available through the GC Open Data Portal is contained within a Value-Added Product, you shall include in a prominent location on such Value-Added Product the following notice:
+This product has been produced by or for (your name – or corporate name, if applicable) and includes data provided by the Government of Canada.
+The incorporation of data sourced from the Government of Canada within this product shall not be construed as constituting an endorsement by the Government of Canada of our product.
+or any other notice approved in writing by Canada.
+4.3 You shall ensure that no acknowledgment of Canada, except as permitted under sections 4.1 and 4.2 above, shall be shown in association with any form of promotion or advertisement of Value-Added Products. You shall not include in your promotional material:
+(a) the name, crest, logos, flags or other insignia or domain names of Canada, without the prior written approval of Canada, which approval may be refused at Canada’s sole discretion; or
+(b) any annotation of any kind that may be interpreted as an endorsement by Canada of the Value-Added Products.
+
+5.0 YOUR OBLIGATIONS
+5.1 You shall promptly notify Canada of any infringement by third parties of the data made available through the GC Open Data Portal when such becomes known to you. Where possible, you will provide a sample of such infringement and co-operate with Canada in enforcing Canada's Intellectual Property Rights against the infringer. You shall not institute any suit or take any action on account of any such infringements without Canada's prior written consent.
+5.2 You shall not use any identifier or mark of Canada, or the name of the Government of Canada in a manner that would imply that you have an exclusive distribution arrangement for any or all of the data made available through the GC Open Data Portal, or that you have access to any confidential information or information not available to any other party.
+5.3 You shall not use the data made available through the GC Open Data Portal in any way which, in the opinion of Canada, may bring disrepute to or prejudice the reputation of Canada.
+
+6.0 REPRESENTATIONS, WARRANTIES, INDEMNITIES
+6.1 CANADA MAKES NO REPRESENTATION AND GIVES NO WARRANTY OF ANY KIND WITH RESPECT TO THE ACCURACY, USEFULNESS, NOVELTY, VALIDITY, SCOPE, COMPLETENESS OR CURRENCY OF THE DATA MADE AVAILABLE THROUGH THE GC OPEN DATA PORTAL AND EXPRESSLY DISCLAIMS ANY IMPLIED WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE OF THE DATA MADE AVAILABLE THROUGH THE GC OPEN DATA PORTAL.
+6.2 YOU SHALL HAVE NO RECOURSE AGAINST CANADA, WHETHER BY WAY OF ANY SUIT OR ACTION OR OTHER, FOR ANY LOSS, LIABILITY, DAMAGE OR COST THAT YOU MAY SUFFER OR INCUR AT ANY TIME, BY REASON OF YOUR POSSESSION OR USE OF THE DATA MADE AVAILABLE THROUGH THE GC OPEN DATA PORTAL, OR ARISING OUT OF THE EXERCISE OF YOUR RIGHTS OR THE FULFILMENT OF YOUR OBLIGATIONS HEREUNDER.
+6.3 YOU SHALL AT ALL TIMES INDEMNIFY AND HOLD CANADA AND ITS MINISTERS, EMPLOYEES AND AGENTS HARMLESS FROM ALL CLAIMS, DEMANDS, LOSSES, DAMAGES, COSTS, ACTIONS OR OTHER PROCEEDINGS MADE, SUSTAINED, BROUGHT OR PROSECUTED BY ANY PERSON IN ANY MANNER, BASED UPON, OR OCCASIONED BY, OR ATTRIBUTED TO ANY INJURY, INFRINGEMENT OR DAMAGE ARISING OUT OF ANY OF YOUR ACTIONS OR OMISSIONS, ARISING FROM ERRONEOUS COMMUNICATION MADE BY YOU, OR ARISING FROM YOUR PERFORMANCE OR NON-PERFORMANCE OF YOUR RIGHTS AND OBLIGATIONS HEREUNDER OR ARISING FROM THE MANUFACTURE, PUBLICATION, DISTRIBUTION OR THE USE OF VALUE-ADDED PRODUCTS.
+
+7.0 EFFECTIVE DATE AND TERMINATION
+7.1 This Agreement is effective as of the date and time you download, access or otherwise use the GC Open Data Portal and shall remain in effect until terminated, as provided in section 7.2.
+7.2 This Agreement terminates automatically and your rights under section 3.0 shall immediately be revoked if you breach any of the terms and conditions of this Agreement.
+7.3 Notwithstanding termination of this Agreement:
+(a) you may continue to distribute Value-Added Products for the purpose of completing orders made before the termination of this Agreement, provided you continue to comply with the requirements to protect and acknowledge the source, as required under section 4.0; and
+(b) you continue to be bound by all agreements that you have entered into in the exercise of your rights under this Agreement prior to the termination.
+7.4 All obligations which expressly or by their nature survive termination of this Agreement shall continue in full force and effect. For greater clarity, and without limiting the generality of the foregoing, the following provisions survive expiration or termination of this Agreement:
+(a) section 4.0 (Protection and Acknowledgement Of Source)
+(b) section 6.0 (Representations, Warranties and Indemnities);
+(c) section 7.3 (a) and (b)
+
+8.0 GENERAL PROVISIONS
+8.1 Applicable Law
+This Agreement shall be construed and enforced in accordance with, and the rights of the Parties shall be governed by, the laws in effect in the Province of Ontario, and the laws of Canada, as applicable.
+8.2 Entire Agreement
+This Agreement constitute the entire agreement between Canada and you with respect to your rights to browse through, download, access or otherwise use the GC Open Data Portal and the data made available through it  and supersedes any prior agreement or communication of any kind between Canada and you. This Agreement may be amended by Canada, in the manner set out at the beginning of this Agreement.
+8.3 No Waiver
+No condoning, excusing or overlooking by Canada of any default by you, at any time or times, in performing or observing any of your obligations hereunder, will operate as a waiver, renunciation, surrender of or otherwise affect the rights of Canada in respect of any continuing or subsequent default. No waiver of these rights will be inferred from anything done or omitted by Canada except by an express waiver in writing.
+8.4 Order of Precedence
+If there is a conflict or ambiguity between this Agreement and any schedules thereto, this Agreement shall prevail.
+8.5 No Authority to Bind
+The Parties expressly disclaim any intention to create a partnership, joint venture or joint enterprise. You acknowledge and agree that nothing contained in this Agreement nor any acts of Canada shall constitute or be deemed to constitute you and Canada as partners, joint venturers or principal and agent in any way or for any purpose. You do not have the authority to act for, or to assume any obligation or responsibility on behalf of Canada.
+8.6 No updates
+Canada assumes no obligation or liability whatsoever for the provision of updates to the data made available through the GC Open Data Portal.
+   

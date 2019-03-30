@@ -1,5 +1,6 @@
 # Binaries for programs and plugins
 flighttrack
+dataloader/dataloader
 dblogger/dblogger
 dbloader/dbloader
 *.exe
