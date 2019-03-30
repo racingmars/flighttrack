@@ -103,15 +103,20 @@ func loadFAAAircraftModels(db *sqlx.DB) error {
 	// header
 	rdr.Read()
 
+	rowCount := 0
+
 	for {
 		row, err := rdr.Read()
 		if err == io.EOF {
+			log.Info().Msgf("Hit EOF after %d rows", rowCount)
 			break
 		}
 		if err != nil {
 			log.Error().Err(err).Msgf("Couldn't read/parse from faa aircraft file")
 			return err
 		}
+
+		rowCount++
 
 		code := strings.TrimSpace(row[0])
 		mfr := strings.TrimSpace(row[1])
