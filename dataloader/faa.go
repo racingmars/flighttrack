@@ -3,8 +3,6 @@ package main
 import (
 	"bufio"
 	"compress/bzip2"
-	"encoding/csv"
-	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -151,6 +149,8 @@ func loadFAAAircraftModels(db *sqlx.DB) error {
 		log.Error().Err(err).Msgf("Error committing transaction")
 	}
 
+	log.Info().Msgf("Inserted %d FAA aircraft models", rowCount)
+
 	return nil
 }
 
@@ -162,29 +162,29 @@ func loadFAARegistrations(db *sqlx.DB) error {
 	}
 	defer f.Close()
 
-	rdr := csv.NewReader(bzip2.NewReader(f))
-	rdr.ReuseRecord = true
-	rdr.LazyQuotes = true
+	rdr := bufio.NewScanner(bzip2.NewReader(f))
 
-	stmt, err := db.Preparex("INSERT INTO faa_reg VALUES ('N'||$1, $2, $3, $4, $5, $6, $7, $8)")
+	txn, err := db.Begin()
+	if err != nil {
+		log.Error().Err(err).Msgf("Couldn't open transaction")
+		return err
+	}
+
+	stmt, err := txn.Prepare(pq.CopyIn("faa_reg", "nnumber", "model_code", "year", "owner", "city", "state", "country", "icao"))
 	if err != nil {
 		log.Error().Err(err).Msgf("Couldn't prepare faa_acft insert statement")
 		return err
 	}
-	defer stmt.Close()
 
 	// header
-	rdr.Read()
+	rdr.Scan()
 
-	for {
-		row, err := rdr.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			log.Error().Err(err).Msgf("Couldn't read/parse from faa aircraft file")
-			return err
-		}
+	rowCount := 0
+
+	for rdr.Scan() {
+		row := strings.Split(rdr.Text(), ",")
+
+		rowCount++
 
 		nnumber := strings.TrimSpace(row[0])
 		modelcode := strings.TrimSpace(row[2])
@@ -195,11 +195,11 @@ func loadFAARegistrations(db *sqlx.DB) error {
 		country := strings.TrimSpace(row[14])
 		icao := strings.TrimSpace(row[33])
 
-		year, err := strconv.Atoi(yearstr)
-		if err != nil {
-			log.Error().Err(err).Msgf("Couldn't convert `%s` to integer", yearstr)
-			continue
-		}
+		year, _ := strconv.Atoi(yearstr)
+		// if err != nil {
+		// 	log.Error().Err(err).Msgf("Couldn't convert `%s` to integer", yearstr)
+		// 	continue
+		// }
 
 		_, err = stmt.Exec(nnumber, modelcode, year, owner, city, state, country, icao)
 		if err != nil {
@@ -207,6 +207,33 @@ func loadFAARegistrations(db *sqlx.DB) error {
 			continue
 		}
 	}
+	if err := rdr.Err(); err != nil {
+		log.Error().Err(err).Msgf("Error reading FAA registration file")
+		stmt.Close()
+		txn.Rollback()
+		return err
+	}
+
+	_, err = stmt.Exec()
+	if err != nil {
+		log.Error().Err(err).Msgf("Error flushing statement")
+		txn.Rollback()
+		return err
+	}
+
+	err = stmt.Close()
+	if err != nil {
+		log.Error().Err(err).Msgf("Error closing statement")
+		txn.Rollback()
+		return err
+	}
+
+	err = txn.Commit()
+	if err != nil {
+		log.Error().Err(err).Msgf("Error committing transaction")
+	}
+
+	log.Info().Msgf("Inserted %d FAA registrations", rowCount)
 
 	return nil
 }
