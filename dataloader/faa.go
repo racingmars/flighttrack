@@ -252,6 +252,6 @@ func mergeFAAData(db *sqlx.DB) error {
 		log.Error().Err(err).Msgf("Couldn't insert FAA data")
 		return err
 	}
-	log.Info().Msgf("Inserted %d FAA registration records", result.RowsAffected)
+	log.Info().Msgf("Inserted %d FAA registration records", result.RowsAffected())
 	return nil
 }
