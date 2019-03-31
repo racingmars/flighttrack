@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"compress/bzip2"
 	"encoding/csv"
 	"io"
@@ -9,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 )
 
@@ -89,32 +91,27 @@ func loadFAAAircraftModels(db *sqlx.DB) error {
 	}
 	defer f.Close()
 
-	rdr := csv.NewReader(bzip2.NewReader(f))
-	rdr.ReuseRecord = true
-	rdr.LazyQuotes = true
+	rdr := bufio.NewScanner(bzip2.NewReader(f))
 
-	stmt, err := db.Preparex("INSERT INTO faa_acft VALUES ($1, $2, $3)")
+	txn, err := db.Begin()
+	if err != nil {
+		log.Error().Err(err).Msgf("Couldn't open transaction")
+		return err
+	}
+
+	stmt, err := txn.Prepare(pq.CopyIn("faa_acft", "model_code", "mfg", "model"))
 	if err != nil {
 		log.Error().Err(err).Msgf("Couldn't prepare faa_acft insert statement")
 		return err
 	}
-	defer stmt.Close()
 
 	// header
-	rdr.Read()
+	rdr.Scan()
 
 	rowCount := 0
 
-	for {
-		row, err := rdr.Read()
-		if err == io.EOF {
-			log.Info().Msgf("Hit EOF after %d rows", rowCount)
-			break
-		}
-		if err != nil {
-			log.Error().Err(err).Msgf("Couldn't read/parse from faa aircraft file")
-			return err
-		}
+	for rdr.Scan() {
+		row := strings.Split(rdr.Text(), ",")
 
 		rowCount++
 
@@ -127,6 +124,31 @@ func loadFAAAircraftModels(db *sqlx.DB) error {
 			log.Error().Err(err).Msgf("Couldn't insert %s into faa_acft", code)
 			continue
 		}
+	}
+	if err := rdr.Err(); err != nil {
+		log.Error().Err(err).Msgf("Error reading FAA aircrat model file")
+		stmt.Close()
+		txn.Rollback()
+		return err
+	}
+
+	_, err = stmt.Exec()
+	if err != nil {
+		log.Error().Err(err).Msgf("Error flushing statement")
+		txn.Rollback()
+		return err
+	}
+
+	err = stmt.Close()
+	if err != nil {
+		log.Error().Err(err).Msgf("Error closing statement")
+		txn.Rollback()
+		return err
+	}
+
+	err = txn.Commit()
+	if err != nil {
+		log.Error().Err(err).Msgf("Error committing transaction")
 	}
 
 	return nil
