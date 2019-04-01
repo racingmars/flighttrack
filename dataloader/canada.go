@@ -75,11 +75,11 @@ func createTempCanadaTables(db *sqlx.DB) error {
 func dropTempCanadaTables(db *sqlx.DB) {
 	_, err := db.Exec(`DROP TABLE canada_owner`)
 	if err != nil {
-		log.Error().Err(err).Msgf("Couldn't drop faa_reg")
+		log.Error().Err(err).Msgf("Couldn't drop canada_owner")
 	}
 	_, err = db.Exec(`DROP TABLE canada_reg`)
 	if err != nil {
-		log.Error().Err(err).Msgf("Couldn't drop faa_acft")
+		log.Error().Err(err).Msgf("Couldn't drop canada_reg")
 	}
 }
 
@@ -107,6 +107,8 @@ func loadCanadaOwners(db *sqlx.DB) error {
 
 	rowCount := 0
 
+	lastMark := ""
+
 	for {
 		row, err := rdr.Read()
 		if err == io.EOF {
@@ -127,10 +129,17 @@ func loadCanadaOwners(db *sqlx.DB) error {
 		province := strings.TrimSpace(row[6])
 		country := strings.TrimSpace(row[9])
 
+		if mark == lastMark {
+			// there can be multiple owners...we'll just grab the first.
+			continue
+		}
+
+		lastMark = mark
+
 		_, err = stmt.Exec(mark, owner, city, province, country)
 		if err != nil {
-			log.Error().Err(err).Msgf("Couldn't insert %s into canada_owner", mark)
-			continue
+			log.Error().Err(err).Msgf("Couldn't insert %s into canada_owner (`%s`, `%s`, `%s`, `%s`, `%s`", mark, mark, owner, city, province, country)
+			return err
 		}
 	}
 
@@ -203,23 +212,26 @@ func loadCanadaRegistrations(db *sqlx.DB) error {
 		icaobin := strings.TrimSpace(row[42])
 		marktrim := row[46]
 
-		icao, err := strconv.ParseInt(icaobin, 2, 16)
+		icao, err := strconv.ParseInt(icaobin, 2, 32)
 		if err != nil {
 			log.Error().Err(err).Msgf("Couldn't parse Mode S binary for %s", mark)
-			continue
+			return err
 		}
 		icaohex := fmt.Sprintf("%x", icao)
 
-		year, err := strconv.Atoi(yearstr[0:4])
-		if err != nil {
-			log.Error().Err(err).Msgf("Couldn't parse year from %s", yearstr)
-			continue
+		year := 0
+		if len(yearstr) == 10 {
+			year, err = strconv.Atoi(yearstr[0:4])
+			if err != nil {
+				log.Error().Err(err).Msgf("Couldn't parse year from %s", yearstr)
+				return err
+			}
 		}
 
 		_, err = stmt.Exec(mark, mfg, model, year, icaohex, marktrim)
 		if err != nil {
 			log.Error().Err(err).Msgf("Couldn't insert %s into canada_reg", mark)
-			continue
+			return err
 		}
 	}
 
@@ -242,7 +254,7 @@ func loadCanadaRegistrations(db *sqlx.DB) error {
 		log.Error().Err(err).Msgf("Error committing transaction")
 	}
 
-	log.Info().Msgf("Inserted %d Canada owners", rowCount)
+	log.Info().Msgf("Inserted %d Canada registrations", rowCount)
 
 	return nil
 }
@@ -252,7 +264,7 @@ func mergeCanadaData(db *sqlx.DB) error {
 		INSERT INTO registration
 		(icao, registration, mfg, model, year, owner, city, state, country, source)
 		SELECT
-			r.icao, 'C-' || r.marktrim, r.mfg, r.model, r.year, o.owner, o.city, o.province, o.country, 'Canada'
+			UPPER(r.icao), 'C-' || r.marktrim, r.mfg, r.model, r.year, o.owner, o.city, o.province, o.country, 'Canada'
 		FROM canada_reg r
 		INNER JOIN canada_owner o ON r.mark = o.mark`
 	log.Info().Msgf("About to merge Canada data into registration table")

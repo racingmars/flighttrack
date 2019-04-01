@@ -1,34 +1,51 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
+var skipFAA = flag.Bool("skipfaa", false, "Skip loading FAA data")
+var skipCanada = flag.Bool("skipcanada", false, "Skip loading Canada data")
+var noTruncate = flag.Bool("notruncate", false, "Do not truncate registration table before loading")
+
 func main() {
+	flag.Parse()
+
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339})
+
 	db, err := getConnection()
 	if err != nil {
 		log.Fatal().Err(err).Msg("couldn't connect to DB")
 	}
 	defer db.Close()
 
-	err = truncate(db)
-	if err != nil {
-		return
+	if !*noTruncate {
+		err = truncate(db)
+		if err != nil {
+			return
+		}
 	}
 
-	err = loadFAA(db)
-	if err != nil {
-		log.Error().Err(err).Msgf("Error loading FAA data")
+	if !*skipFAA {
+		err = loadFAA(db)
+		if err != nil {
+			log.Error().Err(err).Msgf("Error loading FAA data")
+		}
 	}
 
-	err = loadCanada(db)
-	if err != nil {
-		log.Error().Err(err).Msgf("Error loading Canada data")
+	if !*skipCanada {
+		err = loadCanada(db)
+		if err != nil {
+			log.Error().Err(err).Msgf("Error loading Canada data")
+		}
 	}
 
 }
