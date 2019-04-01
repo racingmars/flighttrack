@@ -16,10 +16,21 @@ func main() {
 	}
 	defer db.Close()
 
+	err = truncate(db)
+	if err != nil {
+		return
+	}
+
 	err = loadFAA(db)
 	if err != nil {
 		log.Error().Err(err).Msgf("Error loading FAA data")
 	}
+
+	err = loadCanada(db)
+	if err != nil {
+		log.Error().Err(err).Msgf("Error loading Canada data")
+	}
+
 }
 
 func getConnection() (*sqlx.DB, error) {
@@ -29,4 +40,13 @@ func getConnection() (*sqlx.DB, error) {
 	}
 	db, err := sqlx.Connect("postgres", connStr)
 	return db, err
+}
+
+func truncate(db *sqlx.DB) error {
+	_, err := db.Exec("TRUNCATE TABLE registration")
+	if err != nil {
+		log.Error().Err(err).Msgf("Couldn't truncate registration table")
+		return err
+	}
+	return nil
 }
