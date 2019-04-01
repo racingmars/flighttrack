@@ -264,7 +264,7 @@ func mergeCanadaData(db *sqlx.DB) error {
 		INSERT INTO registration
 		(icao, registration, mfg, model, year, owner, city, state, country, source)
 		SELECT
-			UPPER(r.icao), 'C-' || r.marktrim, r.mfg, r.model, r.year, o.owner, o.city, o.province, o.country, 'Canada'
+			LOWER(r.icao), 'C-' || r.marktrim, r.mfg, r.model, r.year, o.owner, o.city, o.province, o.country, 'Canada'
 		FROM canada_reg r
 		INNER JOIN canada_owner o ON r.mark = o.mark`
 	log.Info().Msgf("About to merge Canada data into registration table")

@@ -14,6 +14,7 @@ import (
 
 var skipFAA = flag.Bool("skipfaa", false, "Skip loading FAA data")
 var skipCanada = flag.Bool("skipcanada", false, "Skip loading Canada data")
+var skipFA = flag.Bool("skipfa", false, "Skip loading Flightaware data")
 var noTruncate = flag.Bool("notruncate", false, "Do not truncate registration table before loading")
 
 func main() {
@@ -45,6 +46,13 @@ func main() {
 		err = loadCanada(db)
 		if err != nil {
 			log.Error().Err(err).Msgf("Error loading Canada data")
+		}
+	}
+
+	if !*skipFA {
+		err = loadFlightaware(db)
+		if err != nil {
+			log.Error().Err(err).Msgf("Error loading Flightaware data")
 		}
 	}
 

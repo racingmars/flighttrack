@@ -243,7 +243,7 @@ func mergeFAAData(db *sqlx.DB) error {
 		INSERT INTO registration
 		(icao, registration, mfg, model, year, owner, city, state, country, source)
 		SELECT
-			UPPER(r.icao), 'N' || r.nnumber, a.mfg, a.model, r.year, r.owner, r.city, r.state, r.country, 'FAA'
+			LOWER(r.icao), 'N' || r.nnumber, a.mfg, a.model, r.year, r.owner, r.city, r.state, r.country, 'FAA'
 		FROM faa_reg r
 		INNER JOIN faa_acft a ON r.model_code=a.model_code`
 	log.Info().Msgf("About to merge FAA data into registration table")
