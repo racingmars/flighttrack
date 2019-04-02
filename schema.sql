@@ -103,3 +103,17 @@ END IF;
 END;
 $$;
 -- End Version 3
+
+-- Version 4: flight indexes
+DO
+$$
+BEGIN
+IF NOT EXISTS(SELECT * FROM schema_version WHERE version = 4) THEN
+  CREATE INDEX idx_flight_start ON flight(first_seen);
+  CREATE INDEX idx_flight_end ON flight(last_seen);
+
+  INSERT INTO schema_version (version) VALUES (4);
+END IF;
+END;
+$$;
+-- End Version 4
