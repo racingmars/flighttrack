@@ -13,6 +13,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 )
 
@@ -46,10 +47,11 @@ type FlightsRow struct {
 	Icao         string         `db:"icao"`
 	Callsign     sql.NullString `db:"callsign"`
 	FirstSeen    time.Time      `db:"first_seen"`
-	LastSeen     time.Time      `db:"last_seen"`
-	MsgCount     int            `db:"msg_count"`
+	LastSeen     pq.NullTime    `db:"last_seen"`
+	MsgCount     sql.NullInt64  `db:"msg_count"`
 	Registration sql.NullString
 	Owner        sql.NullString
+	Airline      sql.NullString `db:"airline"`
 }
 
 func getFlightsHandler(db *sqlx.DB) func(c echo.Context) error {
@@ -59,9 +61,10 @@ func getFlightsHandler(db *sqlx.DB) func(c echo.Context) error {
 		end := time.Date(2019, time.April, 2, 0, 0, 0, 0, time.Local).UTC()
 		err := db.Select(&flights,
 			`SELECT f.id, f.icao, f.callsign, f.first_seen, f.last_seen, f.msg_count,
-			        r.registration, r.owner
+			        r.registration, r.owner, a.name AS airline
 			 FROM flight f
 			 LEFT OUTER JOIN registration r ON f.icao=r.icao
+			 LEFT OUTER JOIN airline a ON a.icao=substring(f.callsign from 1 for 3)
 			 WHERE f.first_seen >= $1 AND f.first_seen < $2
 			 ORDER BY f.first_seen`,
 			start, end)

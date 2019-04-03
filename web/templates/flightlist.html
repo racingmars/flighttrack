@@ -1,6 +1,21 @@
 {{ template "_header.html" . }}
 <h1>Flights</h1>
 
+<form method="GET">
+    <div class="field is-horizontal">
+        <div class="field-label is-small">
+            <label class="label">Date</label>
+        </div>
+        <div class="field-body">
+            <div class="field">
+                <div class="control">
+                    <input class="input is-small" type="text" id="datepicker">
+                </div>
+            </div>
+        </div>
+    </div>
+    <input type="submit">
+</form>
 <table class="table">
     <thead>
         <tr>
@@ -17,14 +32,18 @@
         {{ range .Flights }}
         <tr>
             <td>{{ .Icao }}</td>
-            <td>{{ if .Callsign.Valid }}{{ .Callsign.String }}{{ end }}</td>
+            <td>{{ if .Callsign.Valid }}{{ .Callsign.String }}{{ if .Airline.Valid }}<br><span class="is-size-7">{{ .Airline.Value }}</span>{{ end }}{{ end }}</td>
             <td>{{ if .Registration.Valid }}{{ .Registration.String }}{{ end }}</td>
             <td>{{ .FirstSeen.Format "2006-01-02 15:04:05" }}</td>
-            <td>{{ .LastSeen.Format "2006-01-02 15:04:05"  }}</td>
-            <td>{{ .MsgCount }}</td>
+            <td>{{ if .LastSeen.Valid}}{{ .LastSeen.Value.Format "2006-01-02 15:04:05"  }}{{ end }}</td>
+            <td>{{ if .MsgCount.Valid}}{{ .MsgCount.Value }}{{ end }}</td>
             <td>{{ if .Owner.Valid }}{{ .Owner.String }}{{ end }}</td>
         </tr>
         {{ end }}
     </tbody>
 </table>
+<script src="pikaday.js"></script>
+<script>
+    var picker = new Pikaday({ field: document.getElementById('datepicker'), format: 'YYYY-MM-DD' });
+</script>
 {{ template "_footer.html" . }}
