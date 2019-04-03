@@ -20,8 +20,7 @@
     <thead>
         <tr>
             <th>ICAO ID</th>
-            <th>Callsign</th>
-            <th>Registration</th>
+            <th>Callsign<br>(Registration)</th>
             <th>Type</th>
             <th>First Seen</th>
             <th>Last Seen</th>
@@ -33,8 +32,15 @@
         {{ range .Flights }}
         <tr>
             <td>{{ .Icao }}</td>
-            <td>{{ if .Callsign.Valid }}{{ .Callsign.String }}{{ if .Airline.Valid }}<br><span class="is-size-7">{{ .Airline.Value }}</span>{{ end }}{{ end }}</td>
-            <td>{{ if .Registration.Valid }}{{ .Registration.String }}{{ end }}</td>
+            <td>{{ if .Callsign.Valid }}
+                    {{ .Callsign.String }}
+                        {{ if and (.Registration.Valid) (not (eq .Registration.String .Callsign.String)) }}
+                            ({{ .Registration.String }})
+                        {{ end }}
+                {{ else }}
+                    {{ if .Registration.Valid }}({{ .Registration.String }}){{ end }}
+                {{ end }}
+                {{ if .Callsign.Valid }}{{ if .Airline.Valid }}<br><span class="is-size-7">{{ .Airline.Value }}</span>{{ end }}{{ end }}</td>
             <td>{{ if .TypeCode.Valid }}{{ .TypeCode.String }}{{ end }}</td>
             <td>{{ .FirstSeen.Format "2006-01-02 15:04:05" }}</td>
             <td>{{ if .LastSeen.Valid}}{{ .LastSeen.Value.Format "2006-01-02 15:04:05"  }}{{ end }}</td>
