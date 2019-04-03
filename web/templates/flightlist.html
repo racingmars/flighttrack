@@ -1,0 +1,30 @@
+{{ template "_header.html" . }}
+<h1>Flights</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ICAO ID</th>
+            <th>Callsign</th>
+            <th>Registration</th>
+            <th>First Seen</th>
+            <th>Last Seen</th>
+            <th>Messages</th>
+            <th>Owner</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{ range .Flights }}
+        <tr>
+            <td>{{ .Icao }}</td>
+            <td>{{ if .Callsign.Valid }}{{ .Callsign.String }}{{ end }}</td>
+            <td>{{ if .Registration.Valid }}{{ .Registration.String }}{{ end }}</td>
+            <td>{{ .FirstSeen.Format "2006-01-02 15:04:05" }}</td>
+            <td>{{ .LastSeen.Format "2006-01-02 15:04:05"  }}</td>
+            <td>{{ .MsgCount }}</td>
+            <td>{{ if .Owner.Valid }}{{ .Owner.String }}{{ end }}</td>
+        </tr>
+        {{ end }}
+    </tbody>
+</table>
+{{ template "_footer.html" . }}

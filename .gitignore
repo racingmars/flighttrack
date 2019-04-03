@@ -3,6 +3,7 @@ flighttrack
 dataloader/dataloader
 dblogger/dblogger
 dbloader/dbloader
+web/web
 *.exe
 *.exe~
 *.dll
