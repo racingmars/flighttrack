@@ -52,6 +52,7 @@ type FlightsRow struct {
 	Registration sql.NullString
 	Owner        sql.NullString
 	Airline      sql.NullString `db:"airline"`
+	TypeCode     sql.NullString `db:"typecode"`
 }
 
 func getFlightsHandler(db *sqlx.DB) func(c echo.Context) error {
@@ -61,7 +62,7 @@ func getFlightsHandler(db *sqlx.DB) func(c echo.Context) error {
 		end := time.Date(2019, time.April, 2, 0, 0, 0, 0, time.Local).UTC()
 		err := db.Select(&flights,
 			`SELECT f.id, f.icao, f.callsign, f.first_seen, f.last_seen, f.msg_count,
-			        r.registration, r.owner, a.name AS airline
+			        r.registration, r.owner, a.name AS airline, f.typecode
 			 FROM flight f
 			 LEFT OUTER JOIN registration r ON f.icao=r.icao
 			 LEFT OUTER JOIN airline a ON a.icao=substring(f.callsign from 1 for 3)
