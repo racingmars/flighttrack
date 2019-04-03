@@ -2,3 +2,4 @@ FAA: https://www.faa.gov/licenses_certificates/aircraft_certification/aircraft_r
 Canada: https://wwwapps.tc.gc.ca/Saf-Sec-Sur/2/CCARCS-RIACC/DDZip.aspx
 FlightAware: https://github.com/flightaware/dump1090/tree/master/tools (latest flightaware-YYYYMMDD.csv.xz)
 airlines.dat: https://github.com/jpatokal/openflights/
+aircraft_db: https://junzis.com/adb/data
