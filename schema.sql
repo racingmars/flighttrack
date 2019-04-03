@@ -117,3 +117,21 @@ END IF;
 END;
 $$;
 -- End Version 4
+
+-- Version 5: Airline data
+DO
+$$
+BEGIN
+IF NOT EXISTS(SELECT * FROM schema_version WHERE version = 5) THEN
+  CREATE TABLE airline (
+    icao     CHAR(3) PRIMARY KEY,
+    name     TEXT NOT NULL,
+    callsign TEXT,
+    country  TEXT
+  );
+
+  INSERT INTO schema_version (version) VALUES (5);
+END IF;
+END;
+$$;
+-- End Version 5
