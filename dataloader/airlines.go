@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"io"
 	"os"
+	"regexp"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -52,6 +53,8 @@ func loadAirlineData(db *sqlx.DB) error {
 	rowCount := 0
 	insertCount := 0
 
+	validpattern := regexp.MustCompile(`[A-Z]{3}`)
+
 	for {
 		row, err := rdr.Read()
 		if err == io.EOF {
@@ -72,12 +75,12 @@ func loadAirlineData(db *sqlx.DB) error {
 		country := row[6]
 		active := row[7]
 
-		if icao == "" || icao == "N/A" || active == "N" || icao == "\\N" {
+		if active != "Y" {
 			continue
 		}
 
-		if len(icao) != 3 {
-			log.Warn().Msgf("Code `%s` wrong length; skipping", icao)
+		if !validpattern.MatchString(icao) {
+			log.Debug().Msgf("Skipping `%s` (`%s`)", icao, name)
 			continue
 		}
 

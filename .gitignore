@@ -5,10 +5,6 @@ dblogger/dblogger
 dbloader/dbloader
 web/web
 *.exe
-*.exe~
-*.dll
-*.so
-*.dylib
 
 # Test binary, build with `go test -c`
 *.test
@@ -19,3 +15,12 @@ web/web
 # Mac stuff
 ._*
 .DS_Store
+
+# Uncompressed data sources
+dataloader/data/aircraft_db/aircraft_db.csv
+dataloader/data/canada/carscurr.txt
+dataloader/data/canada/carsownr.txt
+dataloader/data/faa/ACFTREF.txt
+dataloader/data/faa/MASTER.txt
+dataloader/data/flightaware-20180720.csv
+dataloader/data/airlines.dat
