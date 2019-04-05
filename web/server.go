@@ -33,7 +33,7 @@ func main() {
 	e.Use(middleware.Logger())
 	e.GET("/", getFlightsHandler(db))
 	e.GET("/reg", getRegistrationHandler(db))
-	e.Logger.Fatal(e.Start(":1323"))
+	e.Logger.Fatal(e.Start(":1324"))
 }
 
 type Template struct {
