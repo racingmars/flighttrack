@@ -32,7 +32,7 @@
     <tbody>
         {{ range .Flights }}
         <tr>
-            <td>{{ .Icao }}</td>
+            <td><a href="reg?icao={{ .Icao }}">{{ .Icao }}</a></td>
             <td>{{ if .Callsign.Valid -}}
                     {{- .Callsign.String -}}
                         {{- if and (.Registration.Valid) (not (eq .Registration.String .Callsign.String)) -}}

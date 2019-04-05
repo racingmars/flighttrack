@@ -1,0 +1,21 @@
+{{ template "_header.html" . }}
+
+<h1 class="title">Aircraft Details</h1>
+
+<h2 class="subtitle">Registration details</h2>
+
+{{ if .FoundRegInfo }}
+<p>Registration found for {{ .RegInfo.Icao }}</p>
+{{ else }}
+<p>Unable to find aircraft registration info.</p>
+{{ end }}
+
+<h2 class="subtitle">Flights for this airframe</h2>
+
+{{ if .Flights }}
+<p>Flights found</p>
+{{ else }}
+<p>Unable to find flights for this aircraft.</p>
+{{ end }}
+
+{{ template "_footer.html" . }}

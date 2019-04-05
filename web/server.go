@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
+	"strings"
 	"text/template"
 	"time"
 
@@ -30,6 +32,7 @@ func main() {
 	e.Renderer = t
 	e.Use(middleware.Logger())
 	e.GET("/", getFlightsHandler(db))
+	e.GET("/reg", getRegistrationHandler(db))
 	e.Logger.Fatal(e.Start(":1323"))
 }
 
@@ -115,6 +118,65 @@ func getFlightsHandler(db *sqlx.DB) func(c echo.Context) error {
 			DateString: dateparam,
 		}
 		return c.Render(http.StatusOK, "flightlist.html", vals)
+	}
+}
+
+var icaoValidator = regexp.MustCompile(`[0-9a-f]{6}`)
+
+func getRegistrationHandler(db *sqlx.DB) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		icao := c.QueryParam("icao")
+		icao = strings.ToLower(icao)
+
+		if !icaoValidator.MatchString(icao) {
+			return c.String(http.StatusNotAcceptable, "Invalid ICAO/transponder ID (must be hex format)")
+		}
+
+		foundRegInfo := false
+		type RegInfo struct {
+			Icao, Source                                                    string
+			Registration, Typecode, Mfg, Model, Owner, City, State, Country sql.NullString
+			Year                                                            sql.NullInt64
+		}
+		regInfo := RegInfo{}
+		if err := db.Get(&regInfo,
+			`SELECT icao, registration, typecode, mfg, model, year, owner, city, state, country, source
+			FROM registration
+			WHERE icao=$1`, icao); err == sql.ErrNoRows {
+			foundRegInfo = false
+		} else if err != nil {
+			c.Logger().Error(err, icao)
+			return c.String(http.StatusInternalServerError, "Unable to execute database query")
+		} else {
+			foundRegInfo = true
+		}
+
+		flights := []flightsRow{}
+		err := db.Select(&flights,
+			`SELECT f.id, f.icao, f.callsign, f.first_seen, f.last_seen, f.msg_count,
+			        a.name AS airline
+			 FROM flight f
+			 LEFT OUTER JOIN airline a ON a.icao=substring(f.callsign from 1 for 3) AND f.icao NOT LIKE 'ae%'
+			 WHERE f.icao = $1
+			 ORDER BY f.first_seen`,
+			icao)
+		if err != nil {
+			c.Logger().Error(err)
+			return err
+		}
+
+		vals := struct {
+			Title        string
+			FoundRegInfo bool
+			RegInfo      RegInfo
+			Flights      []flightsRow
+		}{
+			Title:        "Aircraft Registration Information",
+			FoundRegInfo: foundRegInfo,
+			RegInfo:      regInfo,
+			Flights:      flights,
+		}
+		return c.Render(http.StatusOK, "registration.html", vals)
 	}
 }
 
