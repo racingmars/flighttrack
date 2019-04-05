@@ -30,7 +30,7 @@
         {{ range .Flights }}
         <tr>
             <td><a href="reg?icao={{ .Icao }}">{{ .Icao }}</a></td>
-            <td>{{ if .Callsign.Valid -}}
+            <td><span style="white-space: nowrap">{{ if .Callsign.Valid -}}
                     {{- .Callsign.String -}}
                         {{- if and (.Registration.Valid) (not (eq .Registration.String .Callsign.String)) -}}
                             &nbsp;({{- .Registration.String -}})
@@ -38,7 +38,7 @@
                 {{- else -}}
                     {{- if .Registration.Valid }}({{ .Registration.String }}){{ end -}}
                 {{- end -}}
-                {{- if .Callsign.Valid }}{{ if .Airline.Valid }}<br><span class="is-size-7">{{ .Airline.Value }}</span>{{ end }}{{ end -}}</td>
+                {{- if .Callsign.Valid }}{{ if .Airline.Valid }}<br><span class="is-size-7">{{ .Airline.Value }}</span>{{ end }}{{ end -}}</span></td>
             <td>
                 {{ if .TypeCode.Valid }}{{ .TypeCode.String }}{{ end }}
                 {{ if .Model.Valid }}
@@ -50,7 +50,7 @@
                     </span>
                 {{ end }}
             </td>
-            <td>{{ .FirstSeen.Format "01-02" }}&nbsp;{{ .FirstSeen.Format "15:04:05" }}</td>
+            <td><span style="white-space: nowrap">{{ .FirstSeen.Format "01-02 15:04:05" }}</span></td>
             <td>{{ if .MsgCount.Valid}}{{ .MsgCount.Value }}{{ end }}</td>
             <td>{{ if .Owner.Valid }}{{ .Owner.String }}{{ end }}</td>
         </tr>

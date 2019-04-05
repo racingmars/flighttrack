@@ -10,7 +10,7 @@
     <table border="0">
         <tbody>
         <tr><th style="text-align: right; padding-right: 2em;">Mode S / ICAO code: </th><td>{{ .Icao }}</td></tr>
-        <tr><th style="text-align: right; padding-right: 2em;">Registration: </th><td>{{ if .Registration.Valid}}{{ .Registration.String }}{{ end }}</td></tr>
+        <tr><th style="text-align: right; padding-right: 2em;">Registration: </th><td>{{ if .Registration.Valid}}{{ .Registration.String }} (<a href="https://flightaware.com/live/flight/{{ .Registration.String }}">FlightAware</a>){{ end }}</td></tr>
         <tr><th style="text-align: right; padding-right: 2em;">Type Code: </th><td>{{ if .Typecode.Valid}}{{ .Typecode.String }}{{ end }}</td></tr>
         <tr><th style="text-align: right; padding-right: 2em;">Year Manufactured: </th><td>{{ if .Year.Valid}}{{ .Year.Value }}{{ end }}</td></tr>
         <tr><th style="text-align: right; padding-right: 2em;">Manufacturer: </th><td>{{ if .Mfg.Valid}}{{ .Mfg.String }}{{ end }}</td></tr>
