@@ -4,6 +4,7 @@ dataloader/dataloader
 dblogger/dblogger
 dbloader/dbloader
 web/web
+util/converticons/converticons
 *.exe
 
 # Test binary, build with `go test -c`

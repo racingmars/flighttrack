@@ -1,0 +1,1 @@
+Icons from dump1090's markers.js file
