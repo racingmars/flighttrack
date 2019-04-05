@@ -2,20 +2,65 @@
 
 <h1 class="title">Aircraft Details</h1>
 
+<section class="section">
 <h2 class="subtitle">Registration details</h2>
 
 {{ if .FoundRegInfo }}
-<p>Registration found for {{ .RegInfo.Icao }}</p>
+    {{ with .RegInfo}}
+    <table border="0">
+        <tbody>
+        <tr><th style="text-align: right; padding-right: 2em;">Mode S / ICAO code: </th><td>{{ .Icao }}</td></tr>
+        <tr><th style="text-align: right; padding-right: 2em;">Registration: </th><td>{{ if .Registration.Valid}}{{ .Registration.String }}{{ end }}</td></tr>
+        <tr><th style="text-align: right; padding-right: 2em;">Type Code: </th><td>{{ if .Typecode.Valid}}{{ .Typecode.String }}{{ end }}</td></tr>
+        <tr><th style="text-align: right; padding-right: 2em;">Year Manufactured: </th><td>{{ if .Year.Valid}}{{ .Year.Value }}{{ end }}</td></tr>
+        <tr><th style="text-align: right; padding-right: 2em;">Manufacturer: </th><td>{{ if .Mfg.Valid}}{{ .Mfg.String }}{{ end }}</td></tr>
+        <tr><th style="text-align: right; padding-right: 2em;">Model: </th><td>{{ if .Model.Valid}}{{ .Model.String }}{{ end }}</td></tr>
+        <tr><th style="text-align: right; padding-right: 2em;">Owner: </th><td>{{ if .Owner.Valid}}{{ .Owner.String }}{{ end }}</td></tr>
+        <tr>
+            <th style="text-align: right; padding-right: 2em;">Owner Location:</th>
+            <td>
+                {{ if .City.Valid}}{{ .City.String }}{{ end }}
+                {{ if .State.Valid}}{{ .State.String }}{{ end }}
+                {{ if .Country.Valid}}{{ .Country.String }}{{ end }}
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    {{ end }}
 {{ else }}
-<p>Unable to find aircraft registration info.</p>
+    <p>Unable to find aircraft registration info.</p>
 {{ end }}
+</section>
 
+<section class="section">
 <h2 class="subtitle">Flights for this airframe</h2>
 
 {{ if .Flights }}
-<p>Flights found</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Callsign</th>
+                <th>First Seen <span class="is-size-7">(UTC)</span></th>
+                <th>Messages</th>
+            </tr>
+        </thead>
+        <tbody>
+        {{ range .Flights }}
+        <tr>
+            <td>
+                {{ if .Callsign.Valid }}{{ .Callsign.String }}{{ end }}
+                {{ if .Callsign.Valid }}{{ if .Airline.Valid }}<br><span class="is-size-7">{{ .Airline.Value }}</span>{{ end }}{{ end }}</td>
+            </td>
+            <td>{{ .FirstSeen.Format "01-02 15:04:05" }}</td>
+            <td>{{ if .MsgCount.Valid }}{{ .MsgCount.Value }}{{ end }}</td>
+        </tr>
+        {{ end }}
+        </tbody>
+    </table>
 {{ else }}
 <p>Unable to find flights for this aircraft.</p>
 {{ end }}
+
+</section>
 
 {{ template "_footer.html" . }}

@@ -2,7 +2,6 @@
 
 <h1 class="title">Flights</h1>
 
-<p>
 <form method="GET">
     <div class="field is-grouped is-small"> 
         <div class="control has-icons-left">
@@ -15,9 +14,7 @@
     </div>
     {{ if .DateError }}<div class="has-text-danger is-size-7">Date must be in format YYYY-MM-DD</div>{{ end }}
 </form>
-</p>
 
-<p>
 <table class="table">
     <thead>
         <tr>
@@ -60,7 +57,6 @@
         {{ end }}
     </tbody>
 </table>
-</p>
 
 <script src="pikaday.js"></script>
 <script>
