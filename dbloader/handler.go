@@ -30,7 +30,7 @@ func newHandler(db *sqlx.DB) *handler {
 	}
 }
 
-func (h *handler) Flush() {
+func (h *handler) Close() {
 	if h.logstmt != nil {
 		h.logstmt.Close()
 	}
@@ -40,10 +40,6 @@ func (h *handler) Flush() {
 			log.Error().Err(err).Msg("couldn't commit transaction when closing handler")
 		}
 	}
-}
-
-func (h *handler) Close() {
-	h.Flush()
 }
 
 func (h *handler) NewFlight(icaoID string, firstSeen time.Time) {
@@ -146,11 +142,11 @@ func (h *handler) AddTrackPoint(icaoID string, t tracker.TrackLog) {
 
 	h.batchCount++
 	if h.batchCount > 25000 {
-		h.rotateTransaction()
+		h.Flush()
 	}
 }
 
-func (h *handler) rotateTransaction() {
+func (h *handler) Flush() {
 	//log.Debug().Msg("committing transaction")
 	if h.logstmt != nil {
 		h.logstmt.Close()
