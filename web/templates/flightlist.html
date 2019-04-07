@@ -18,6 +18,8 @@
 <table class="table">
     <thead>
         <tr>
+            <th></th>
+            <th></th>
             <th>ICAO&nbsp;ID</th>
             <th>Callsign <span class="is-size-7">(Registration)</span></th>
             <th>Type</th>
@@ -29,6 +31,8 @@
     <tbody>
         {{ range .Flights }}
         <tr>
+            <td style="text-align: center; vertical-align: center;"><img src="static/icons/{{ .Icon }}" width="{{ .IconX }}" height="{{ .IconY }}"></td>
+            <td><a href="flight/{{ .ID }}">Details</a></td>
             <td><a href="reg?icao={{ .Icao }}">{{ .Icao }}</a></td>
             <td><span style="white-space: nowrap">{{ if .Callsign.Valid -}}
                     {{- .Callsign.String -}}
@@ -58,7 +62,7 @@
     </tbody>
 </table>
 
-<script src="pikaday.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
 <script>
     var picker = new Pikaday({ field: document.getElementById('datepicker'), format: 'YYYY-MM-DD' });
 </script>
