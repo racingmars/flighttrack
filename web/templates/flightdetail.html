@@ -52,70 +52,122 @@
     </tbody>
 </table>
 
-<div id="map" style="height: 600px; width: 600px;">
-</div>
-
-<h2 class="subtitle">Track Log</h2>
-<table class="table">
-        <thead>
-            <tr>
-                <th>Time</th>
-                <th>Callsign</th>
-                <th>Latitude</th>
-                <th>Longitude</th>
-                <th>Heading</th>
-                <th>Speed</th>
-                <th>Altitude</th>
-                <th>VS</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{ range .TrackLog }}
-            <tr>
-                <td>{{ .Time.Format "15:04:05" }}</td>
-                <td>{{ if .Callsign.Valid }}{{ .Callsign.Value }}{{ end }}</td>
-                <td>{{ if .Latitude.Valid }}{{ .Latitude.Value }}{{ end }}</td>
-                <td>{{ if .Longitude.Valid }}{{ .Longitude.Value }}{{ end }}</td>
-                <td>{{ if .Heading.Valid }}{{ .Heading.Value }}{{ end }}</td>
-                <td>{{ if .Speed.Valid }}{{ .Speed.Value }}{{ end }}</td>
-                <td>{{ if .Altitude.Valid }}{{ .Altitude.Value }}{{ end }}</td>
-                <td>{{ if .Vs.Valid }}{{ .Vs.Value }}{{ end }}</td>
-            </tr>
-            {{ end }}
-        </tbody>
-    </table>
-
+{{ if .HasPosition }}
+<div id="map" style="height: 600px; width: 600px;"></div>
 <script type="text/javascript">
+
+    {{ if .HasTrack }}
+    var planeGeometry = new ol.geom.LineString([
+        {{ range .TrackLog -}}
+        {{- if .Latitude.Valid -}}
+        ol.proj.fromLonLat([{{.Longitude.Value}}, {{.Latitude.Value}}]),
+        {{ end -}}
+        {{- end }}
+    ])
+    {{ else }}
+    var planeGeometry = new ol.geom.Point(ol.proj.fromLonLat([{{.PointLon}}, {{.PointLat}}]))
+    {{ end }}
+
+    var receiverGeometry = new ol.geom.Point(ol.proj.fromLonLat([-122.92629, 45.52197]))
+
     var vectorSource = new ol.source.Vector({
         features: [
         new ol.Feature({
-            geometry: new ol.geom.LineString([
-                {{ range .TrackLog -}}
-                {{- if .Latitude.Valid -}}
-                ol.proj.fromLonLat([{{.Longitude.Value}}, {{.Latitude.Value}}]),
-                {{ end -}}
-                {{- end }}
-            ])
+            geometry: planeGeometry
         })
         ]
     });
 
-    var map = new ol.Map({
-      target: 'map',
-      layers: [
-        new ol.layer.Tile({
-          source: new ol.source.OSM()
-        }),
-        new ol.layer.Vector({
-            source: vectorSource
-        })
-      ],
-      view: new ol.View({
-        center: ol.proj.fromLonLat([-122.92629, 45.52197]),
-        zoom: 10
-      })
+    var receiverSource = new ol.source.Vector({
+        features: [
+            new ol.Feature({
+                geometry: receiverGeometry
+            })
+        ]
     });
 
+    var map = new ol.Map({
+        target: 'map',
+        layers: [
+            new ol.layer.Tile({
+                source: new ol.source.OSM()
+            }),
+            new ol.layer.Vector({
+                source: receiverSource,
+                style: [
+                    new ol.style.Style({
+                        image: new ol.style.Circle({
+                            radius: 4,
+                            stroke: new ol.style.Stroke({ color: [0, 0, 0] }),
+                            fill: new ol.style.Fill({ color: [0, 0, 0, .5] })
+                        })
+                    })
+                ]
+            }),
+            new ol.layer.Vector({
+                source: vectorSource,
+                style: [
+                    new ol.style.Style({
+                        image: new ol.style.Circle({
+                            radius: 10,
+                            stroke: new ol.style.Stroke({ color: '#fff' }),
+                            fill: new ol.style.Fill({ color: '#3399CC' })
+                        })
+                    }),
+                    new ol.style.Style({
+                        stroke: new ol.style.Stroke({
+                            width: 3,
+                            color: 'blue',
+                        })
+                    })
+                ]
+            })
+        ],
+        view: new ol.View({
+            center: ol.proj.fromLonLat([-122.92629, 45.52197]),
+            zoom: 10
+        })
+    });
+
+    var geomCollection = new ol.geom.GeometryCollection([receiverGeometry, planeGeometry])
+    map.getView().fit(geomCollection.getExtent(), {padding: [20, 20, 20, 20], maxZoom: 12})
 </script>
+{{ else }}
+<div>No position data received from flight.</div>
+{{ end }}
+
+<h2 class="subtitle">Track Log</h2>
+{{ if .TrackLog }}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Time</th>
+            <th>Callsign</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Heading</th>
+            <th>Speed</th>
+            <th>Altitude</th>
+            <th>VS</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{ range .TrackLog }}
+        <tr>
+            <td>{{ .Time.Format "15:04:05" }}</td>
+            <td>{{ if .Callsign.Valid }}{{ .Callsign.Value }}{{ end }}</td>
+            <td>{{ if .Latitude.Valid }}{{ .Latitude.Value }}{{ end }}</td>
+            <td>{{ if .Longitude.Valid }}{{ .Longitude.Value }}{{ end }}</td>
+            <td>{{ if .Heading.Valid }}{{ .Heading.Value }}{{ end }}</td>
+            <td>{{ if .Speed.Valid }}{{ .Speed.Value }}{{ end }}</td>
+            <td>{{ if .Altitude.Valid }}{{ .Altitude.Value }}{{ end }}</td>
+            <td>{{ if .Vs.Valid }}{{ .Vs.Value }}{{ end }}</td>
+        </tr>
+        {{ end }}
+    </tbody>
+</table>
+{{ else }}
+<div>No ADS-B data received for this flight.</div>
+{{ end }}
 
 {{ template "_footer.html" . }}

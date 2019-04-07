@@ -248,10 +248,35 @@ func getFlightHandler(db *sqlx.DB) func(c echo.Context) error {
 			return err
 		}
 
+		var hasPosition, hasTrack bool
+		var pointLat, pointLon float64
+
+		for _, t := range tracklog {
+			if t.Latitude.Valid && hasPosition {
+				// If we've seen a previous position, we are now just looking for a change
+				// in position.
+				if t.Latitude.Float64 != pointLat || t.Longitude.Float64 != pointLon {
+					// Yep, a different position. We can draw a track line
+					hasTrack = true
+					break
+				}
+			} else if t.Latitude.Valid {
+				// First time we've seen a position
+				hasPosition = true
+				// Save this point as the "point" position if we can't draw a line
+				pointLat = t.Latitude.Float64
+				pointLon = t.Longitude.Float64
+			}
+		}
+
 		vals := map[string]interface{}{
-			"Title":    "Flight Info",
-			"Flight":   flight,
-			"TrackLog": tracklog,
+			"Title":       "Flight Info",
+			"Flight":      flight,
+			"TrackLog":    tracklog,
+			"HasPosition": hasPosition,
+			"HasTrack":    hasTrack,
+			"PointLat":    pointLat,
+			"PointLon":    pointLon,
 		}
 		return c.Render(http.StatusOK, "flightdetail.html", vals)
 	}
