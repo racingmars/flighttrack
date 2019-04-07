@@ -9,12 +9,13 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"text/template"
+	gotemplate "text/template"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+
 	"github.com/racingmars/flighttrack/decoder"
 	"github.com/racingmars/flighttrack/web/data"
 )
@@ -29,24 +30,29 @@ func main() {
 	dao := data.New(db)
 
 	e := echo.New()
-	t := &Template{
-		templates: template.Must(template.ParseGlob("templates/*.html")),
+
+	t := &template{
+		templates: gotemplate.Must(gotemplate.ParseGlob("templates/*.html")),
 	}
 	e.Renderer = t
+
 	e.Use(middleware.Logger())
 	e.Use(middleware.Gzip())
+
 	e.GET("/", getFlightsHandler(dao))
-	e.GET("/reg", getRegistrationHandler(dao))
+	e.GET("/reg/:icao", getRegistrationHandler(dao))
 	e.GET("/flight/:id", getFlightHandler(dao))
+
 	e.Static("/static", "static")
+
 	e.Logger.Fatal(e.Start(":1324"))
 }
 
-type Template struct {
-	templates *template.Template
+type template struct {
+	templates *gotemplate.Template
 }
 
-func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+func (t *template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
@@ -134,7 +140,7 @@ var icaoValidator = regexp.MustCompile(`[0-9a-f]{6}`)
 
 func getRegistrationHandler(dao *data.DAO) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		icao := c.QueryParam("icao")
+		icao := c.Param("icao")
 		icao = strings.ToLower(icao)
 
 		if !icaoValidator.MatchString(icao) {

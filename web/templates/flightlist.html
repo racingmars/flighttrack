@@ -33,7 +33,7 @@
         <tr>
             <td style="text-align: center; vertical-align: center;"><img src="static/icons/{{ .Icon }}" width="{{ .IconX }}" height="{{ .IconY }}"></td>
             <td><a href="flight/{{ .ID }}">Details</a></td>
-            <td><a href="reg?icao={{ .Icao }}">{{ .Icao }}</a></td>
+            <td><a href="reg/{{ .Icao }}">{{ .Icao }}</a></td>
             <td><span style="white-space: nowrap">{{ if .Callsign.Valid -}}
                     {{- .Callsign.String -}}
                         {{- if and (.Registration.Valid) (not (eq .Registration.String .Callsign.String)) -}}

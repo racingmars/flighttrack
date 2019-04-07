@@ -39,6 +39,7 @@
     <table class="table">
         <thead>
             <tr>
+                <th></th>
                 <th>Callsign</th>
                 <th>First Seen <span class="is-size-7">(UTC)</span></th>
                 <th>Messages</th>
@@ -47,6 +48,7 @@
         <tbody>
         {{ range .Flights }}
         <tr>
+            <td><a href="../flight/{{ .ID }}">Details</a></td>
             <td>
                 {{ if .Callsign.Valid }}{{ .Callsign.String }}{{ end }}
                 {{ if .Callsign.Valid }}{{ if .Airline.Valid }}<br><span class="is-size-7">{{ .Airline.Value }}</span>{{ end }}{{ end }}</td>
