@@ -70,7 +70,7 @@
 
     var receiverGeometry = new ol.geom.Point(ol.proj.fromLonLat([-122.92629, 45.52197]))
 
-    var vectorSource = new ol.source.Vector({
+    var planeSource = new ol.source.Vector({
         features: [
         new ol.Feature({
             geometry: planeGeometry
@@ -85,6 +85,8 @@
             })
         ]
     });
+
+    var geomCollection = new ol.geom.GeometryCollection([receiverGeometry, planeGeometry])
 
     var map = new ol.Map({
         target: 'map',
@@ -105,7 +107,7 @@
                 ]
             }),
             new ol.layer.Vector({
-                source: vectorSource,
+                source: planeSource,
                 style: [
                     new ol.style.Style({
                         image: new ol.style.Circle({
@@ -124,12 +126,11 @@
             })
         ],
         view: new ol.View({
-            center: ol.proj.fromLonLat([-122.92629, 45.52197]),
+            center: ol.extent.getCenter(geomCollection.getExtent()),
             zoom: 10
         })
     });
 
-    var geomCollection = new ol.geom.GeometryCollection([receiverGeometry, planeGeometry])
     map.getView().fit(geomCollection.getExtent(), {padding: [20, 20, 20, 20], maxZoom: 12})
 </script>
 {{ else }}
