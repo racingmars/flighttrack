@@ -135,6 +135,7 @@ var typeToIcon = map[string]string{
 	"BE99": "twin_small",
 	"E120": "twin_large",
 	"LR60": "jet_nonswept",
+	"R66":  "helicopter",
 }
 
 var iconSize = map[string][]int{

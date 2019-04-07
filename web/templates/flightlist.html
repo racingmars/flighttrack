@@ -48,7 +48,7 @@
                 {{ if .Model.Valid }}
                     {{ if .TypeCode.Valid }}<br>{{ end }}
                     <span class="is-size-7">
-                    {{ if (and (.MfgYear.Valid) (gt .MfgYear.Value 1900)) }}{{ .MfgYear.Value }} {{ end }}
+                    {{ if .MfgYear.Valid }}{{ .MfgYear.Value }} {{ end }}
                     {{ if .Mfg.Valid }}{{ .Mfg.String }} {{ end }}
                     {{ .Model.String }}
                     </span>

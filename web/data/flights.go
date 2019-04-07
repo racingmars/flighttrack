@@ -38,7 +38,12 @@ type TrackLog struct {
 
 const baseFlightQuery = `
 	SELECT f.id, f.icao, f.callsign, f.first_seen, f.last_seen, f.msg_count, f.category,
-	       r.registration, r.owner, a.name AS airline, r.typecode, r.year, r.mfg, r.model
+		   r.registration, r.owner, a.name AS airline, r.typecode, r.mfg, r.model,
+		   CASE
+			 WHEN r.year IS NULL THEN null
+			 WHEN r.year < 1850 THEN null
+			 ELSE r.year
+		   END AS year
 	FROM flight f
 	LEFT OUTER JOIN registration r ON f.icao=r.icao
 	LEFT OUTER JOIN airline a ON a.icao=substring(f.callsign from 1 for 3) AND f.icao NOT LIKE 'ae%'
@@ -58,6 +63,22 @@ func (d *DAO) GetFlightsForDateRange(start, end time.Time) ([]Flight, error) {
 	err := d.db.Select(&flights, baseFlightQuery+
 		`WHERE f.first_seen >= $1 AND f.first_seen < $2
 		 ORDER BY f.first_seen`, start, end)
+	return flights, err
+}
+
+func (d *DAO) GetFlightsActive() ([]Flight, error) {
+	flights := make([]Flight, 0)
+	err := d.db.Select(&flights, baseFlightQuery+
+		`WHERE f.last_seen IS NULL
+		 ORDER BY f.first_seen`)
+	return flights, err
+}
+
+func (d *DAO) GetFlightsForAirframe(icao string) ([]Flight, error) {
+	flights := make([]Flight, 0)
+	err := d.db.Select(&flights, baseFlightQuery+
+		`WHERE f.icao = $1
+		 ORDER BY f.first_seen`, icao)
 	return flights, err
 }
 
