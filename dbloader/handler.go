@@ -30,7 +30,7 @@ func newHandler(db *sqlx.DB) *handler {
 	}
 }
 
-func (h *handler) Close() {
+func (h *handler) Flush() {
 	if h.logstmt != nil {
 		h.logstmt.Close()
 	}
@@ -40,6 +40,10 @@ func (h *handler) Close() {
 			log.Error().Err(err).Msg("couldn't commit transaction when closing handler")
 		}
 	}
+}
+
+func (h *handler) Close() {
+	h.Flush()
 }
 
 func (h *handler) NewFlight(icaoID string, firstSeen time.Time) {
