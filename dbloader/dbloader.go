@@ -132,7 +132,9 @@ func loadRows(db *sqlx.DB) {
 			lastRawMessageID = msg.ID
 		}
 
-		log.Info().Msgf("finished: processed %d messages", total)
+		if total > 0 {
+			log.Info().Msgf("finished: processed %d messages", total)
+		}
 		if !hadResult {
 			handler.Flush()
 			// if we exhausted the backlog, wait a bit for new messages.

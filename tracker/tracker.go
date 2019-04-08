@@ -256,26 +256,28 @@ func (t *Tracker) handleAdsbPosition(icaoID string, flt *flight, tm time.Time, m
 		flt.oddFrame = msg
 	}
 	if flt.evenFrame != nil && flt.oddFrame != nil {
-		if lat, lon, good := decoder.CalcPosition(*flt.oddFrame, *flt.evenFrame); good {
-			flt.Current.PositionValid = true
-			flt.Current.Longitude = lon
-			flt.Current.Latitude = lat
-			if flt.Current.Longitude != flt.Last.Longitude || flt.Current.Latitude != flt.Last.Latitude {
-				flt.PendingChange = true
-			}
-			if !flt.Last.PositionValid {
-				reportable = true
-				flt.PendingChange = true
-			} else {
-				if math.Abs(distanceNM(lat, flt.Last.Latitude, lon, flt.Last.Longitude)) >= distanceEpsilonNM {
+		timediff := flt.evenFrame.Timestamp.Sub(flt.oddFrame.Timestamp)
+		if timediff < 0 {
+			timediff = -timediff
+		}
+		if timediff < 5*time.Second {
+			if lat, lon, good := decoder.CalcPosition(*flt.oddFrame, *flt.evenFrame); good {
+				flt.Current.PositionValid = true
+				flt.Current.Longitude = lon
+				flt.Current.Latitude = lat
+				if flt.Current.Longitude != flt.Last.Longitude || flt.Current.Latitude != flt.Last.Latitude {
+					flt.PendingChange = true
+				}
+				if !flt.Last.PositionValid {
 					reportable = true
+					flt.PendingChange = true
+				} else {
+					if math.Abs(distanceNM(lat, flt.Last.Latitude, lon, flt.Last.Longitude)) >= distanceEpsilonNM {
+						reportable = true
+					}
 				}
 			}
 		}
-		// Now that we've used the even and odd frames, discard them to ensure the next calculation
-		// is with fresh values.
-		flt.evenFrame = nil
-		flt.oddFrame = nil
 	}
 
 	if reportable {
