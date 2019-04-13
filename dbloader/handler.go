@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -28,6 +29,23 @@ func newHandler(db *sqlx.DB) *handler {
 		idmap:      make(map[string]int),
 		currentTxn: tx,
 	}
+}
+
+func newHandlerWithState(db *sqlx.DB, handlerstate []byte) (*handler, error) {
+	tx, err := db.Beginx()
+	if err != nil {
+		return nil, err
+	}
+	var idmap map[string]int
+	err = json.Unmarshal(handlerstate, &idmap)
+	if err != nil {
+		return nil, err
+	}
+	return &handler{
+		db:         db,
+		idmap:      idmap,
+		currentTxn: tx,
+	}, nil
 }
 
 func (h *handler) Close() {
@@ -162,4 +180,67 @@ func (h *handler) Flush() {
 	}
 	h.currentTxn = tx
 	h.batchCount = 0
+}
+
+func (h *handler) GetState() []byte {
+	data, err := json.Marshal(h.idmap)
+	if err != nil {
+		log.Error().Err(err).Msg("Unable to marshal handler state")
+		return nil
+	}
+	return data
+}
+
+func (h *handler) saveState(trackerstate []byte, lastRawMessageID int) {
+	handlerstate := h.GetState()
+
+	if !(trackerstate != nil && handlerstate != nil && lastRawMessageID > 0) {
+		log.Error().Msg("Can't save state; inputs are not valid")
+		return
+	}
+
+	txn, err := h.db.Begin()
+	if err != nil {
+		log.Error().Err(err).Msg("Couldn't open transaction to save handler state")
+		return
+	}
+
+	_, err = txn.Exec(
+		`INSERT INTO parameters (name, value_txt) VALUES ('trackerstate', $1)
+		 ON CONFLICT (name)
+		 DO UPDATE SET value_txt = EXCLUDED.value_txt`,
+		string(trackerstate))
+	if err != nil {
+		log.Error().Err(err).Msg("Couldn't insert tracker state")
+		txn.Rollback()
+		return
+	}
+
+	_, err = txn.Exec(
+		`INSERT INTO parameters (name, value_txt) VALUES ('handlerstate', $1)
+		 ON CONFLICT (name)
+		 DO UPDATE SET value_txt = EXCLUDED.value_txt`,
+		string(handlerstate))
+	if err != nil {
+		log.Error().Err(err).Msg("Couldn't insert handler state")
+		txn.Rollback()
+		return
+	}
+
+	_, err = txn.Exec(
+		`INSERT INTO parameters (name, value_int) VALUES ('lastmsgid', $1)
+		 ON CONFLICT (name)
+		 DO UPDATE SET value_int = EXCLUDED.value_int`,
+		lastRawMessageID)
+	if err != nil {
+		log.Error().Err(err).Msg("Couldn't insert last message ID")
+		txn.Rollback()
+		return
+	}
+
+	log.Debug().Msgf("Saving state with last message ID: %d", lastRawMessageID)
+	err = txn.Commit()
+	if err != nil {
+		log.Error().Err(err).Msg("Couldn't commit transaction to save state")
+	}
 }

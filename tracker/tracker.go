@@ -1,6 +1,7 @@
 package tracker
 
 import (
+	"encoding/json"
 	"math"
 	"strings"
 	"time"
@@ -42,8 +43,8 @@ type flight struct {
 	Category      decoder.AircraftType
 	Last          TrackLog
 	Current       TrackLog
-	evenFrame     *decoder.AdsbPosition
-	oddFrame      *decoder.AdsbPosition
+	EvenFrame     *decoder.AdsbPosition
+	OddFrame      *decoder.AdsbPosition
 	PendingChange bool
 }
 
@@ -75,6 +76,19 @@ func New(handler FlightHandler, forceReporting bool) *Tracker {
 	t.handlers = handler
 	t.ForceReporting = forceReporting
 	return t
+}
+
+func NewWithState(handler FlightHandler, forceReporting bool, trackerstate []byte) (*Tracker, error) {
+	t := new(Tracker)
+	var flights map[string]*flight
+	err := json.Unmarshal(trackerstate, &flights)
+	if err != nil {
+		return nil, err
+	}
+	t.flights = flights
+	t.handlers = handler
+	t.ForceReporting = forceReporting
+	return t, nil
 }
 
 func (t *Tracker) Message(icaoID string, tm time.Time, msg interface{}) {
@@ -251,17 +265,17 @@ func (t *Tracker) handleAdsbPosition(icaoID string, flt *flight, tm time.Time, m
 	}
 
 	if msg.Frame == 0 {
-		flt.evenFrame = msg
+		flt.EvenFrame = msg
 	} else {
-		flt.oddFrame = msg
+		flt.OddFrame = msg
 	}
-	if flt.evenFrame != nil && flt.oddFrame != nil {
-		timediff := flt.evenFrame.Timestamp.Sub(flt.oddFrame.Timestamp)
+	if flt.EvenFrame != nil && flt.OddFrame != nil {
+		timediff := flt.EvenFrame.Timestamp.Sub(flt.OddFrame.Timestamp)
 		if timediff < 0 {
 			timediff = -timediff
 		}
 		if timediff < 5*time.Second {
-			if lat, lon, good := decoder.CalcPosition(*flt.oddFrame, *flt.evenFrame); good {
+			if lat, lon, good := decoder.CalcPosition(*flt.OddFrame, *flt.EvenFrame); good {
 				flt.Current.PositionValid = true
 				flt.Current.Longitude = lon
 				flt.Current.Latitude = lat
@@ -326,4 +340,13 @@ func distanceNM(lat1, lon1, lat2, lon2 float64) float64 {
 	a := math.Pow(math.Sin(dphi/2.0), 2) + math.Cos(phi1)*math.Cos(phi2)*math.Pow(math.Sin(dlambda/2), 2)
 	meters := 2 * r * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 	return meters / 1852
+}
+
+func (t *Tracker) GetState() []byte {
+	data, err := json.Marshal(t.flights)
+	if err != nil {
+		log.Error().Err(err).Msgf("Couldn't marshal flights array")
+		return nil
+	}
+	return data
 }
