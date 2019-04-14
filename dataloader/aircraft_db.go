@@ -98,6 +98,9 @@ func loadAircraftDBData(db *sqlx.DB) error {
 		icao := row[0]
 		regid := row[1]
 		mdl := row[2]
+		if mdl == "xxxx" {
+			mdl = ""
+		}
 		typecode := row[3]
 		operator := row[4]
 
