@@ -1,3 +1,8 @@
+/*
+ Colors:
+   #5D6A80 #6EA5FF #BAD5FF #375380 #95AACC
+   Monochromatic theme based on #BAD5FF using https://color.adobe.com/
+*/
 html {
     text-rendering: optimizeLegibility;
     -moz-osx-font-smoothing: grayscale;
