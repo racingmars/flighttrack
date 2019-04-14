@@ -2,22 +2,23 @@
 
 <h1 class="title">Aircraft Details</h1>
 
-<section class="section">
+<div class="sidebyside">
+    <div>
 <h2 class="subtitle">Registration details</h2>
 
 {{ if .FoundRegInfo }}
     {{ with .RegInfo}}
-    <table border="0">
+    <table class="infotable">
         <tbody>
-        <tr><th style="text-align: right; padding-right: 2em;">Mode S / ICAO code: </th><td>{{ .Icao }}</td></tr>
-        <tr><th style="text-align: right; padding-right: 2em;">Registration: </th><td>{{ if .Registration.Valid}}{{ .Registration.String }} (<a href="https://flightaware.com/live/flight/{{ .Registration.String }}">FlightAware</a>){{ end }}</td></tr>
-        <tr><th style="text-align: right; padding-right: 2em;">Type Code: </th><td>{{ if .Typecode.Valid}}{{ .Typecode.String }}{{ end }}</td></tr>
-        <tr><th style="text-align: right; padding-right: 2em;">Year Manufactured: </th><td>{{ if .Year.Valid}}{{ .Year.Value }}{{ end }}</td></tr>
-        <tr><th style="text-align: right; padding-right: 2em;">Manufacturer: </th><td>{{ if .Mfg.Valid}}{{ .Mfg.String }}{{ end }}</td></tr>
-        <tr><th style="text-align: right; padding-right: 2em;">Model: </th><td>{{ if .Model.Valid}}{{ .Model.String }}{{ end }}</td></tr>
-        <tr><th style="text-align: right; padding-right: 2em;">Owner: </th><td>{{ if .Owner.Valid}}{{ .Owner.String }}{{ end }}</td></tr>
+        <tr><th>Mode S / ICAO code: </th><td>{{ .Icao }}</td></tr>
+        <tr><th>Registration: </th><td>{{ if .Registration.Valid}}{{ .Registration.String }} (<a href="https://flightaware.com/live/flight/{{ .Registration.String }}">FlightAware</a>){{ end }}</td></tr>
+        <tr><th>Type Code: </th><td>{{ if .Typecode.Valid}}{{ .Typecode.String }}{{ end }}</td></tr>
+        <tr><th>Year Manufactured: </th><td>{{ if .Year.Valid}}{{ .Year.Value }}{{ end }}</td></tr>
+        <tr><th>Manufacturer: </th><td>{{ if .Mfg.Valid}}{{ .Mfg.String }}{{ end }}</td></tr>
+        <tr><th>Model: </th><td>{{ if .Model.Valid}}{{ .Model.String }}{{ end }}</td></tr>
+        <tr><th>Owner: </th><td>{{ if .Owner.Valid}}{{ .Owner.String }}{{ end }}</td></tr>
         <tr>
-            <th style="text-align: right; padding-right: 2em;">Owner Location:</th>
+            <th>Owner Location:</th>
             <td>
                 {{ if .City.Valid}}{{ .City.String }}{{ end }}
                 {{ if .State.Valid}}{{ .State.String }}{{ end }}
@@ -30,18 +31,19 @@
 {{ else }}
     <p>Unable to find aircraft registration info.</p>
 {{ end }}
-</section>
+    </div>
 
-<section class="section">
-<h2 class="subtitle">Flights for this airframe</h2>
+    <div>
+<h2 class="subtitle">Flights seen with this airframe</h2>
 
 {{ if .Flights }}
-    <table class="table">
+    <table class="flightlist">
         <thead>
             <tr>
                 <th></th>
                 <th>Callsign</th>
-                <th>First Seen <span class="is-size-7">(UTC)</span></th>
+                <th>First Seen <span class="smallnote">(UTC)</span></th>
+                <th>Last Seen</th>
                 <th>Messages</th>
             </tr>
         </thead>
@@ -51,9 +53,10 @@
             <td><a href="../flight/{{ .ID }}">Details</a></td>
             <td>
                 {{ if .Callsign.Valid }}{{ .Callsign.String }}{{ end }}
-                {{ if .Callsign.Valid }}{{ if .Airline.Valid }}<br><span class="is-size-7">{{ .Airline.Value }}</span>{{ end }}{{ end }}</td>
+                {{ if .Callsign.Valid }}{{ if .Airline.Valid }}<br><span class="smallnote">{{ .Airline.Value }}</span>{{ end }}{{ end }}</td>
             </td>
             <td>{{ .FirstSeen.Format "01-02 15:04:05" }}</td>
+            <td>{{ if .LastSeen.Valid }}{{ .LastSeen.Value.Format "15:04:05" }}{{ end }}</td>
             <td>{{ if .MsgCount.Valid }}{{ .MsgCount.Value }}{{ end }}</td>
         </tr>
         {{ end }}
@@ -62,7 +65,7 @@
 {{ else }}
 <p>Unable to find flights for this aircraft.</p>
 {{ end }}
-
-</section>
+</div>
+</div>
 
 {{ template "_footer.html" . }}

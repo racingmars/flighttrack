@@ -1,145 +1,133 @@
 {{ template "_header.html" . }}
 
-<h1 class="title">Flight Details</h1>
+<h2>Flight Details</h2>
 
-<script src="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/build/ol.js"></script>
-<link rel="stylesheet" href="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/css/ol.css" type="text/css">
-
-<table class="table">
-    <thead>
-        <tr>
-            <th></th>
-            <th>ICAO&nbsp;ID</th>
-            <th>Callsign <span class="is-size-7">(Registration)</span></th>
-            <th>Type</th>
-            <th>First&nbsp;Seen <span class="is-size-7">(UTC)</span></th>
-            <th>Last&nbsp;Seen <span class="is-size-7">(UTC)</span></th>
-            <th>Messages</th>
-            <th>Owner/Operator</th>
-        </tr>
-    </thead>
-    <tbody>
-        {{ with .Flight }}
-        <tr>
-            <td style="text-align: center; vertical-align: center;"><img src="static/icons/{{ .Icon }}" width="{{ .IconX }}" height="{{ .IconY }}"></td>
-            <td><a href="../reg/{{ .Icao }}">{{ .Icao }}</a></td>
-            <td><span style="white-space: nowrap">{{ if .Callsign.Valid -}}
-                    {{- .Callsign.String -}}
-                        {{- if and (.Registration.Valid) (not (eq .Registration.String .Callsign.String)) -}}
-                            &nbsp;({{- .Registration.String -}})
-                        {{- end -}}
-                {{- else -}}
-                    {{- if .Registration.Valid }}({{ .Registration.String }}){{ end -}}
-                {{- end -}}
-                {{- if .Callsign.Valid }}{{ if .Airline.Valid }}<br><span class="is-size-7">{{ .Airline.Value }}</span>{{ end }}{{ end -}}</span></td>
-            <td>
-                {{ if .TypeCode.Valid }}{{ .TypeCode.String }}{{ end }}
-                {{ if .Model.Valid }}
-                    {{ if .TypeCode.Valid }}<br>{{ end }}
-                    <span class="is-size-7">
-                    {{ if .MfgYear.Valid }}{{ .MfgYear.Value }} {{ end }}
-                    {{ if .Mfg.Valid }}{{ .Mfg.String }} {{ end }}
-                    {{ .Model.String }}
-                    </span>
-                {{ end }}
-            </td>
-            <td><span style="white-space: nowrap">{{ .FirstSeen.Format "01-02 15:04:05" }}</span></td>
-            <td>{{ if .LastSeen.Valid }}<span style="white-space: nowrap">{{ .LastSeen.Time.Format "01-02 15:04:05" }}</span>{{ end }}</td>
-            <td>{{ if .MsgCount.Valid}}{{ .MsgCount.Value }}{{ end }}</td>
-            <td>{{ if .Owner.Valid }}{{ .Owner.String }}{{ end }}</td>
-        </tr>
+<div class="sidebyside">
+    {{ if .HasPosition }}
+    <div id="map"></div>
+    <script type="text/javascript">
+    
+        {{ if .HasTrack }}
+        var planeGeometry = new ol.geom.LineString([
+            {{ range .TrackLog -}}
+            {{- if .Latitude.Valid -}}
+            ol.proj.fromLonLat([{{.Longitude.Value}}, {{.Latitude.Value}}]),
+            {{ end -}}
+            {{- end }}
+        ])
+        {{ else }}
+        var planeGeometry = new ol.geom.Point(ol.proj.fromLonLat([{{.PointLon}}, {{.PointLat}}]))
         {{ end }}
-    </tbody>
-</table>
-
-{{ if .HasPosition }}
-<div id="map" style="height: 600px; width: 600px;"></div>
-<script type="text/javascript">
-
-    {{ if .HasTrack }}
-    var planeGeometry = new ol.geom.LineString([
-        {{ range .TrackLog -}}
-        {{- if .Latitude.Valid -}}
-        ol.proj.fromLonLat([{{.Longitude.Value}}, {{.Latitude.Value}}]),
-        {{ end -}}
-        {{- end }}
-    ])
-    {{ else }}
-    var planeGeometry = new ol.geom.Point(ol.proj.fromLonLat([{{.PointLon}}, {{.PointLat}}]))
-    {{ end }}
-
-    var receiverGeometry = new ol.geom.Point(ol.proj.fromLonLat([-122.92629, 45.52197]))
-
-    var planeSource = new ol.source.Vector({
-        features: [
-        new ol.Feature({
-            geometry: planeGeometry
-        })
-        ]
-    });
-
-    var receiverSource = new ol.source.Vector({
-        features: [
+    
+        var receiverGeometry = new ol.geom.Point(ol.proj.fromLonLat([-122.92629, 45.52197]))
+    
+        var planeSource = new ol.source.Vector({
+            features: [
             new ol.Feature({
-                geometry: receiverGeometry
+                geometry: planeGeometry
             })
-        ]
-    });
-
-    var geomCollection = new ol.geom.GeometryCollection([receiverGeometry, planeGeometry])
-
-    var map = new ol.Map({
-        target: 'map',
-        layers: [
-            new ol.layer.Tile({
-                source: new ol.source.OSM({url: '/static/tiles/{z}/{x}/{y}.png'})
-            }),
-            new ol.layer.Vector({
-                source: receiverSource,
-                style: [
-                    new ol.style.Style({
-                        image: new ol.style.Circle({
-                            radius: 4,
-                            stroke: new ol.style.Stroke({ color: [0, 0, 0] }),
-                            fill: new ol.style.Fill({ color: [0, 0, 0, .5] })
+            ]
+        });
+    
+        var receiverSource = new ol.source.Vector({
+            features: [
+                new ol.Feature({
+                    geometry: receiverGeometry
+                })
+            ]
+        });
+    
+        var geomCollection = new ol.geom.GeometryCollection([receiverGeometry, planeGeometry])
+    
+        var map = new ol.Map({
+            target: 'map',
+            layers: [
+                new ol.layer.Tile({
+                    source: new ol.source.OSM({url: '/static/tiles/{z}/{x}/{y}.png'})
+                }),
+                new ol.layer.Vector({
+                    source: receiverSource,
+                    style: [
+                        new ol.style.Style({
+                            image: new ol.style.Circle({
+                                radius: 4,
+                                stroke: new ol.style.Stroke({ color: [0, 0, 0] }),
+                                fill: new ol.style.Fill({ color: [0, 0, 0, .5] })
+                            })
                         })
-                    })
-                ]
-            }),
-            new ol.layer.Vector({
-                source: planeSource,
-                style: [
-                    new ol.style.Style({
-                        image: new ol.style.Circle({
-                            radius: 10,
-                            stroke: new ol.style.Stroke({ color: '#fff' }),
-                            fill: new ol.style.Fill({ color: '#3399CC' })
+                    ]
+                }),
+                new ol.layer.Vector({
+                    source: planeSource,
+                    style: [
+                        new ol.style.Style({
+                            image: new ol.style.Circle({
+                                radius: 10,
+                                stroke: new ol.style.Stroke({ color: '#fff' }),
+                                fill: new ol.style.Fill({ color: '#3399CC' })
+                            })
+                        }),
+                        new ol.style.Style({
+                            stroke: new ol.style.Stroke({
+                                width: 3,
+                                color: 'blue',
+                            })
                         })
-                    }),
-                    new ol.style.Style({
-                        stroke: new ol.style.Stroke({
-                            width: 3,
-                            color: 'blue',
-                        })
-                    })
-                ]
+                    ]
+                })
+            ],
+            view: new ol.View({
+                center: ol.extent.getCenter(geomCollection.getExtent()),
+                maxZoom: 15,
+                minZoom: 7,
+                zoom: 10
             })
-        ],
-        view: new ol.View({
-            center: ol.extent.getCenter(geomCollection.getExtent()),
-            zoom: 10
-        })
-    });
-
-    map.getView().fit(geomCollection.getExtent(), {padding: [20, 20, 20, 20], maxZoom: 12})
-</script>
-{{ else }}
-<div>No position data received from flight.</div>
-{{ end }}
+        });
+    
+        map.getView().fit(geomCollection.getExtent(), {padding: [20, 20, 20, 20], maxZoom: 12})
+    </script>
+    {{ else }}
+    <div>No position data received from flight.</div>
+    {{ end }}
+    <div>
+        <table class="infotable">
+            <tbody>
+                {{ with .Flight }}
+                <tr><th>ICAO&nbsp;ID:</th><td><a href="../reg/{{ .Icao }}">{{ .Icao }}</a></td></td>
+                    <tr><th>Callsign <span class="smallnote">(Registration)</span>:</th><td><span style="white-space: nowrap">{{ if .Callsign.Valid -}}
+                            {{- .Callsign.String -}}
+                                {{- if and (.Registration.Valid) (not (eq .Registration.String .Callsign.String)) -}}
+                                    &nbsp;({{- .Registration.String -}})
+                                {{- end -}}
+                        {{- else -}}
+                            {{- if .Registration.Valid }}({{ .Registration.String }}){{ end -}}
+                        {{- end -}}
+                        {{- if .Callsign.Valid }}{{ if .Airline.Valid }}<br><span class="smallnote">{{ .Airline.Value }}</span>{{ end }}{{ end -}}</span></td></tr>
+                    <tr><th>Type:</th><td>
+                        {{ if .TypeCode.Valid }}{{ .TypeCode.String }}{{ end }}
+                        {{ if .Model.Valid }}
+                            {{ if .TypeCode.Valid }}<br>{{ end }}
+                            <span class="smallnote">
+                            {{ if .MfgYear.Valid }}{{ .MfgYear.Value }} {{ end }}
+                            {{ if .Mfg.Valid }}{{ .Mfg.String }} {{ end }}
+                            {{ .Model.String }}
+                            </span>
+                        {{ end }}
+                    </td></tr>
+                    <tr><th>First Seen <span class="smallnote">(UTC)</span>:</th><td><span style="white-space: nowrap">{{ .FirstSeen.Format "01-02 15:04:05" }}</span></td></tr>
+                    <tr><th>Last Seen <span class="smallnote">(UTC)</span>:</th><td>{{ if .LastSeen.Valid }}<span style="white-space: nowrap">{{ .LastSeen.Time.Format "01-02 15:04:05" }}</span>{{ end }}</td></tr>
+                    <tr><th>Messages:</th><td>{{ if .MsgCount.Valid}}{{ .MsgCount.Value }}{{ end }}</td></tr>
+                    <tr><th>Owner/Operator:</th><td>{{ if .Owner.Valid }}{{ .Owner.String }}{{ end }}</td></tr>
+                </tr>
+                {{ end }}
+            </tbody>
+        </table>
+    </div>
+</div>
 
 <h2 class="subtitle">Track Log</h2>
 {{ if .TrackLog }}
-<table class="table">
+<table class="flightlist">
     <thead>
         <tr>
             <th>Time</th>

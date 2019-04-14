@@ -1,29 +1,25 @@
 {{ template "_header.html" . }}
 
-<h1 class="title">Flights</h1>
+<h1>Flights</h1>
 
 <form method="GET">
-    <div class="field is-grouped is-small"> 
-        <div class="control has-icons-left">
-            <input class="input is-small" type="text" id="datepicker" size="15" name="date" value="{{ .DateString }}"/>
-            <span class="icon is-small is-left"><i class="fas fa-calendar"></i></span>
-        </div>
-        <div class="control"><input class="button is-small" type="submit" name="submit" value="Select Date" /></div>
-        <div class="control"><input class="button is-small" type="submit" name="submit" value="Today" /></div>
-        <div class="control"><input class="button is-small" type="submit" name="submit" value="Active" /></div>
-    </div>
-    {{ if .DateError }}<div class="has-text-danger is-size-7">Date must be in format YYYY-MM-DD</div>{{ end }}
+<input type="text" id="datepicker" size="15" name="date" value="{{ .DateString }}"/>
+<span class="icon is-small is-left"><i class="fas fa-calendar"></i></span>
+<input class="button is-small" type="submit" name="submit" value="Select Date" />
+<input class="button is-small" type="submit" name="submit" value="Today" />
+<input class="button is-small" type="submit" name="submit" value="Active" />
+{{ if .DateError }}<div class="has-text-danger smallnote">Date must be in format YYYY-MM-DD</div>{{ end }}
 </form>
 
-<table class="table">
+<table class="flightlist wide">
     <thead>
         <tr>
             <th></th>
             <th></th>
             <th>ICAO&nbsp;ID</th>
-            <th>Callsign <span class="is-size-7">(Registration)</span></th>
+            <th>Callsign <span class="smallnote">(Registration)</span></th>
             <th>Type</th>
-            <th>First&nbsp;Seen <span class="is-size-7">(UTC)</span></th>
+            <th>First&nbsp;Seen <span class="smallnote">(UTC)</span></th>
             <th>Messages</th>
             <th>Owner/Operator</th>
         </tr>
@@ -42,12 +38,12 @@
                 {{- else -}}
                     {{- if .Registration.Valid }}({{ .Registration.String }}){{ end -}}
                 {{- end -}}
-                {{- if .Callsign.Valid }}{{ if .Airline.Valid }}<br><span class="is-size-7">{{ .Airline.Value }}</span>{{ end }}{{ end -}}</span></td>
+                {{- if .Callsign.Valid }}{{ if .Airline.Valid }}<br><span class="smallnote">{{ .Airline.Value }}</span>{{ end }}{{ end -}}</span></td>
             <td>
                 {{ if .TypeCode.Valid }}{{ .TypeCode.String }}{{ end }}
                 {{ if .Model.Valid }}
                     {{ if .TypeCode.Valid }}<br>{{ end }}
-                    <span class="is-size-7">
+                    <span class="smallnote">
                     {{ if .MfgYear.Valid }}{{ .MfgYear.Value }} {{ end }}
                     {{ if .Mfg.Valid }}{{ .Mfg.String }} {{ end }}
                     {{ .Model.String }}
