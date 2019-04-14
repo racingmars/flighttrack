@@ -191,7 +191,7 @@ func (h *handler) GetState() []byte {
 	return data
 }
 
-func (h *handler) saveState(trackerstate []byte, lastRawMessageID int) {
+func (h *handler) saveState(trackerstate []byte, lastRawMessageID int64) {
 	handlerstate := h.GetState()
 
 	if !(trackerstate != nil && handlerstate != nil && lastRawMessageID > 0) {

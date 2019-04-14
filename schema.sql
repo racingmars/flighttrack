@@ -24,7 +24,7 @@ $$
 BEGIN
 IF NOT EXISTS(SELECT * FROM schema_version WHERE version = 1) THEN
   CREATE TABLE raw_message (
-    id         INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     message    BYTEA,
     timestamp  BYTEA,
     signal     SMALLINT,
@@ -135,3 +135,37 @@ END IF;
 END;
 $$;
 -- End Version 5
+
+-- NOTE: We're going to put in a dummy version 6 and change the data type up
+--       in version 1 instead. Leaving this here for notes... but otherwise
+--       this hasn't been released to anyone yet, so I'm just manually taking
+--       care of my internal system.
+-- -- Version 6: Change raw_message.id to bigint
+-- DO
+-- $$
+-- BEGIN
+-- IF NOT EXISTS(SELECT * FROM schema_version WHERE version = 6) THEN
+--   ALTER TABLE raw_message
+--   ALTER COLUMN id SET DATA TYPE bigint;
+--   -- Rebuild index after the data type change
+--   -- Can't do this from a function... need to restructure how we do migrations, I guess
+--   -- CREATE UNIQUE INDEX CONCURRENTLY raw_message_pkey_new ON raw_message(id);
+--   -- ALTER TABLE raw_message
+--   -- DROP CONSTRAINT raw_message_pkey,
+--   -- ADD CONSTRAINT raw_message_pkey PRIMARY KEY USING INDEX raw_message_pkey_new;
+--   -- VACUUM;
+--   -- ANALYZE raw_message;
+
+--   INSERT INTO schema_version (version) VALUES (6);
+-- END IF;
+-- END;
+-- $$;
+DO
+$$
+BEGIN
+IF NOT EXISTS(SELECT * FROM schema_version WHERE version = 6) THEN
+  INSERT INTO schema_version (version) VALUES (6);
+END IF;
+END;
+$$;
+-- End Version 6

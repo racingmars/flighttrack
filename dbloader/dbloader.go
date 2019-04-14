@@ -129,12 +129,12 @@ func getConnection() (*sqlx.DB, error) {
 }
 
 type Message struct {
-	ID      int       `db:"id"`
+	ID      int64     `db:"id"`
 	Message []byte    `db:"message"`
 	Time    time.Time `db:"created_at"`
 }
 
-func loadRows(db *sqlx.DB, trackerstate, handlerstate []byte, lastRawMessageID int) {
+func loadRows(db *sqlx.DB, trackerstate, handlerstate []byte, lastRawMessageID int64) {
 	var handler *handler
 	var track *tracker.Tracker
 	var err error
@@ -218,7 +218,7 @@ func resetDatabase(db *sqlx.DB) error {
 	return nil
 }
 
-func loadState(db *sqlx.DB) (trackerstate, handlerstate []byte, lastmsgid int, err error) {
+func loadState(db *sqlx.DB) (trackerstate, handlerstate []byte, lastmsgid int64, err error) {
 	err = db.Get(&lastmsgid, `SELECT value_int FROM parameters WHERE name='lastmsgid'`)
 	if err != nil {
 		return nil, nil, 0, err
