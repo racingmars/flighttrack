@@ -39,7 +39,9 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Gzip())
 
-	e.GET("/", getFlightsHandler(dao))
+	e.GET("/", getRedirectHandler(http.StatusTemporaryRedirect, "/flights/today"))
+	e.GET("/flights", getRedirectHandler(http.StatusTemporaryRedirect, "/flights/today"))
+	e.GET("/flights/:when", getFlightsHandler(dao))
 	e.GET("/reg/:icao", getRegistrationHandler(dao))
 	e.GET("/flight/:id", getFlightHandler(dao))
 
@@ -56,36 +58,41 @@ func (t *template) Render(w io.Writer, name string, data interface{}, c echo.Con
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
+func getRedirectHandler(code int, url string) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		return c.Redirect(code, url)
+	}
+}
+
+var validWhen = regexp.MustCompile(`^(today|active|[0-9]{8})$`)
+
 func getFlightsHandler(dao *data.DAO) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		// Default to today
-		userdate := time.Now()
-
-		// Check if we got a date from the query string, but allow the "today" submission to
-		// stick to the default (which we just set to today)
-		dateparam := c.QueryParam("date")
-		submitparam := c.QueryParam("submit")
-		var dateerror bool
-		if dateparam != "" && submitparam != "Today" && submitparam != "Active" {
-			trialdate, err := time.Parse("2006-01-02", dateparam)
-			if err != nil {
-				dateerror = true
-			} else {
-				// Everything good; use the user's date
-				userdate = trialdate
-			}
-		} else {
-			// For display purposes, pretend like the user provided the default date
-			dateparam = userdate.Format("2006-01-02")
+		when := c.Param("when")
+		if !validWhen.MatchString(when) {
+			return echo.NewHTTPError(http.StatusNotFound, "Unknown flight date format")
 		}
+
+		var userdate time.Time
+		var err error
+
+		if when == "today" || when == "active" {
+			userdate = time.Now()
+		} else {
+			userdate, err = time.Parse("20060102", when)
+			if err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, "Invalid date format (must be YYYYMMDD)")
+			}
+		}
+
+		visibledate := userdate.Format("2006-01-02")
 
 		var flights []data.Flight
 		start := time.Date(userdate.Year(), userdate.Month(), userdate.Day(), 0, 0, 0, 0, time.Local).UTC()
 		end := time.Date(start.Year(), start.Month(), start.Day()+1, 0, 0, 0, 0, time.Local).UTC()
 
-		var err error
 		// If user wants "active" flights, ignore dates and look for flights that aren't closed
-		if submitparam == "Active" {
+		if when == "active" {
 			flights, err = dao.GetFlightsActive()
 		} else {
 			flights, err = dao.GetFlightsForDateRange(start, end)
@@ -129,8 +136,7 @@ func getFlightsHandler(dao *data.DAO) func(c echo.Context) error {
 		vals := map[string]interface{}{
 			"Title":      "Flights",
 			"Flights":    flights,
-			"DateError":  dateerror,
-			"DateString": dateparam,
+			"DateString": visibledate,
 		}
 		return c.Render(http.StatusOK, "flightlist.html", vals)
 	}

@@ -1,15 +1,11 @@
 {{ template "_header.html" . }}
-
 <h1>Flights</h1>
 
-<form method="GET">
 <input type="text" id="datepicker" size="15" name="date" value="{{ .DateString }}"/>
-<!-- <span class="icon is-left"><i class="fas fa-calendar"></i></span> -->
-<input class="button" type="submit" name="submit" value="Select Date" />
-<input class="button" type="submit" name="submit" value="Today" />
-<input class="button" type="submit" name="submit" value="Active" />
-{{ if .DateError }}<div class="has-text-danger smallnote">Date must be in format YYYY-MM-DD</div>{{ end }}
-</form>
+<a class="button" href="javascript:foo()">Go</a>
+<span class="hspace"></span> 
+<a class="button" href="today">Today</a>
+<a class="button" href="active">Active</a>
 
 <table class="flightlist wide">
     <thead>
@@ -27,9 +23,9 @@
     <tbody>
         {{ range .Flights }}
         <tr>
-            <td style="text-align: center; vertical-align: center;"><img src="static/icons/{{ .Icon }}" width="{{ .IconX }}" height="{{ .IconY }}"></td>
-            <td><a href="flight/{{ .ID }}">Details</a></td>
-            <td><a href="reg/{{ .Icao }}">{{ .Icao }}</a></td>
+            <td style="text-align: center; vertical-align: center;"><img src="/static/icons/{{ .Icon }}" width="{{ .IconX }}" height="{{ .IconY }}"></td>
+            <td><a href="/flight/{{ .ID }}">Details</a></td>
+            <td><a href="/reg/{{ .Icao }}">{{ .Icao }}</a></td>
             <td><span style="white-space: nowrap">{{ if .Callsign.Valid -}}
                     {{- .Callsign.String -}}
                         {{- if and (.Registration.Valid) (not (eq .Registration.String .Callsign.String)) -}}
@@ -58,8 +54,12 @@
     </tbody>
 </table>
 
-<script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
 <script>
     var picker = new Pikaday({ field: document.getElementById('datepicker'), format: 'YYYY-MM-DD' });
+    function foo() {
+        let date = document.getElementById('datepicker').value;
+        date = date.replace(/-/g, '');
+        location.assign(date);
+    }
 </script>
 {{ template "_footer.html" . }}

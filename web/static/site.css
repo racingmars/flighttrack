@@ -131,7 +131,7 @@ table.infotable td {
     vertical-align: top;
 }
 
-button, input[type="submit"] {
+button, input[type="submit"], .button {
     border: 1px solid #d0d0d0;
     background-color: white;
     border-radius: 3px;
@@ -142,6 +142,9 @@ button, input[type="submit"] {
     padding-bottom: calc(.375em - 1px);
     padding-top: calc(.375em - 1px);
     vertical-align: middle;
+    text-decoration: none;
+    cursor: default;
+    -webkit-appearance: button;
 }
 
 input[type="text"] {
@@ -155,4 +158,8 @@ input[type="text"] {
     padding-bottom: calc(.375em - 1px);
     padding-top: calc(.375em - 1px);
     vertical-align: middle;
+}
+
+.hspace {
+    padding-left: 1em;
 }
