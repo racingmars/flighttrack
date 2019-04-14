@@ -4,10 +4,10 @@
 
 <form method="GET">
 <input type="text" id="datepicker" size="15" name="date" value="{{ .DateString }}"/>
-<span class="icon is-small is-left"><i class="fas fa-calendar"></i></span>
-<input class="button is-small" type="submit" name="submit" value="Select Date" />
-<input class="button is-small" type="submit" name="submit" value="Today" />
-<input class="button is-small" type="submit" name="submit" value="Active" />
+<!-- <span class="icon is-left"><i class="fas fa-calendar"></i></span> -->
+<input class="button" type="submit" name="submit" value="Select Date" />
+<input class="button" type="submit" name="submit" value="Today" />
+<input class="button" type="submit" name="submit" value="Active" />
 {{ if .DateError }}<div class="has-text-danger smallnote">Date must be in format YYYY-MM-DD</div>{{ end }}
 </form>
 

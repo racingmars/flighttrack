@@ -125,3 +125,29 @@ table.infotable td {
     padding-left: 1em;
     vertical-align: top;
 }
+
+button, input[type="submit"] {
+    border: 1px solid #d0d0d0;
+    background-color: white;
+    border-radius: 3px;
+    font-size: .8em;
+    color: #303030;
+    padding-left: 1em;
+    padding-right: 1em;
+    padding-bottom: calc(.375em - 1px);
+    padding-top: calc(.375em - 1px);
+    vertical-align: middle;
+}
+
+input[type="text"] {
+    border: 1px solid #d0d0d0;
+    background-color: white;
+    border-radius: 3px;
+    font-size: .8em;
+    color: #303030;
+    padding-left: .3em;
+    padding-right: .3em;
+    padding-bottom: calc(.375em - 1px);
+    padding-top: calc(.375em - 1px);
+    vertical-align: middle;
+}
