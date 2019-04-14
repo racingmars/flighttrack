@@ -11,6 +11,7 @@ util/converticons/converticons
 *.test
 
 web/static/tiles
+web/static/tiles.tar
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
