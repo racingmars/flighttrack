@@ -169,3 +169,34 @@ END IF;
 END;
 $$;
 -- End Version 6
+
+-- Version 7: Database size view
+DO
+$$
+BEGIN
+IF NOT EXISTS(SELECT * FROM schema_version WHERE version = 7) THEN
+  CREATE VIEW dbsize AS
+  WITH tables AS (
+    SELECT ('"' || table_schema || '"."' || table_name || '"') AS qname, table_name AS tname
+      FROM information_schema.tables
+      WHERE table_schema = 'public' AND table_type != 'VIEW'
+  ), estimates AS (
+    SELECT pgc.relname, pgc.reltuples::bigint AS estimate
+    FROM pg_class pgc
+    INNER JOIN pg_namespace pgn on pgc.relnamespace=pgn.oid
+    WHERE pgn.nspname='public'
+  )
+  SELECT tname AS table_name,
+        pg_size_pretty(pg_table_size(qname)) AS table_size,
+        pg_size_pretty(pg_indexes_size(qname)) AS indexes_size,
+        pg_size_pretty(pg_total_relation_size(qname)) AS total_size,
+        pg_total_relation_size(qname) AS raw_size,
+        estimate AS count
+  FROM tables
+  INNER JOIN estimates ON estimates.relname=tables.tname;
+
+  INSERT INTO schema_version (version) VALUES (7);
+END IF;
+END;
+$$;
+-- End Version 7
