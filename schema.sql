@@ -191,7 +191,7 @@ IF NOT EXISTS(SELECT * FROM schema_version WHERE version = 7) THEN
         pg_size_pretty(pg_indexes_size(qname)) AS indexes_size,
         pg_size_pretty(pg_total_relation_size(qname)) AS total_size,
         pg_total_relation_size(qname) AS raw_size,
-        estimate AS count
+        estimate AS rowcount
   FROM tables
   INNER JOIN estimates ON estimates.relname=tables.tname;
 

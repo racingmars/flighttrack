@@ -1,0 +1,48 @@
+{{ template "_header.html" . }}
+
+<h1 class="title">About</h1>
+
+<p>What is this site? Most aircraft have transponders which are continuously transmitting radio signals with information about the flight. I'm receiving those signals with a USB software defined radio (SDR), saving all of the radio messages into a database, and processing the messages to present the data you see on this site. All of the flight data you see on this flight is what I have been able to receive over-the-air from my house near the Hillsboro Airport (KHIO).</p>
+
+<h2>Data sources</h2>
+
+<p>The flight data is all logged by the radio receiver at my house.</p>
+
+<p>United States aircraft registration info is from the <a href="https://www.faa.gov/licenses_certificates/aircraft_certification/aircraft_registry/releasable_aircraft_download/">FAA civil aircraft registration database</a>. Canadian aircraft registration details from from the <a href="https://open.canada.ca/data/en/dataset/935cf4d3-7e8d-4e9b-8dfd-c02643d4f782">Transport Canada Civil Aircraft Register Database</a>.</p>
+
+<p>Basic type and registration information for other aircraft is from <a href="https://junzis.com/adb/data">J. Sun's World Aircraft Database</a> and FlightAware's <a href="https://github.com/flightaware/dump1090/tree/master/tools">aircraft data file</a> that is included with dump1090.</p>
+
+<p>Airline data courtesy of <a href="https://github.com/jpatokal/openflights/">openflights.org</a></p>
+
+<p>Aircraft icons in the flight list are shamelessly pilfered from dump1090, who credits FlightAware as the original source.</p>
+
+<h2>Source code</h2>
+
+<p>All of the code to log and decode the data, and run this site, is written in Go and available under an open source license on <a href="https://github.com/racingmars/flighttrack">GitHub</a>.</p>
+
+<h2>Database size</h2>
+
+<p>I have been logging received messages continuously since March 9, 2019.</p>
+
+<table class="flightlist">
+<tbody>
+    <tr>
+        <th>Table</th>
+        <th>Approx row count</th>
+        <th>Data size</th>
+        <th>Index size</th>
+        <th>Total size</th>
+    </tr>
+    {{ range .tables }}
+    <tr>
+        <td>{{ .TableName }}</td>
+        <td>{{ .ApproxRows }}</td>
+        <td>{{ .SizeTable }}</td>
+        <td>{{ .SizeIndex }}</td>
+        <td>{{ .SizeTotal }}</td>
+    </tr>
+    {{ end }}
+</tbody>
+</table>
+
+{{ template "_footer.html" . }}

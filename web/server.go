@@ -50,6 +50,7 @@ func main() {
 	e.GET("/reg/:icao", getRegistrationHandler(dao))
 	e.GET("/reg", getRegSearchHandler(dao))
 	e.GET("/flight/:id", getFlightHandler(dao))
+	e.GET("/about", getAboutHandler(dao))
 
 	e.Static("/static", "static")
 
@@ -310,5 +311,20 @@ func getRegSearchHandler(dao *data.DAO) func(c echo.Context) error {
 		}
 
 		return c.Redirect(http.StatusPermanentRedirect, fmt.Sprintf("/reg/%s", url.QueryEscape(found)))
+	}
+}
+
+func getAboutHandler(dao *data.DAO) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		tables, err := dao.GetTableSizes()
+		if err != nil {
+			return err
+		}
+		vals := map[string]interface{}{
+			"Title":   "About",
+			"section": "about",
+			"tables":  tables,
+		}
+		return c.Render(http.StatusOK, "about.html", vals)
 	}
 }
