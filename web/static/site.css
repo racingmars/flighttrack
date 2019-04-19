@@ -43,12 +43,21 @@ table.flightlist thead tr {
     border-bottom: 2px solid #95AACC;
 }
 
-table.flightlist th {
+th {
     text-align: left;
 }
 
 table.wide {
     width: 100%;
+}
+
+td.numeric, th.numeric {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+td.tabular, th.tabular {
+    font-variant-numeric: tabular-nums;
 }
 
 nav {
@@ -68,7 +77,8 @@ nav div, nav a {
 }
 
 nav a:hover {
-    border-bottom: 5px solid #bad5ff;
+    /* border-bottom: 5px solid #bad5ff; */
+    box-shadow: 0px -5px 0px #bad5ff inset;
 }
 
 nav div.brand {
@@ -76,8 +86,9 @@ nav div.brand {
     font-size: 1.2em;
 }
 
-nav div.active {
-    border-bottom: 5px solid #6EA5FF;
+nav div.active, nav a.active {
+    /* border-bottom: 5px solid #6EA5FF; */
+    box-shadow: 0px -5px 0px #6EA5FF inset;
 }
 
 nav div.brand i {
@@ -162,4 +173,20 @@ input[type="text"] {
 
 .hspace {
     padding-left: 1em;
+}
+
+table.aircraftsearch td {
+    padding-bottom: 1em;
+    vertical-align: middle;
+}
+
+table.aircraftsearch td:first-child {
+    text-align: right;
+    padding-right: .5em;
+}
+
+.error {
+    border: 1px red solid;
+    background-color: #ffdede;
+    padding: 1em;
 }

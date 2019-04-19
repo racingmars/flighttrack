@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -31,8 +32,12 @@ func main() {
 
 	e := echo.New()
 
+	fm := make(gotemplate.FuncMap)
+	fm["PrettyLon"] = PrettyLon
+	fm["PrettyLat"] = PrettyLat
+
 	t := &template{
-		templates: gotemplate.Must(gotemplate.ParseGlob("templates/*.html")),
+		templates: gotemplate.Must(gotemplate.New("base").Funcs(fm).ParseGlob("templates/*.html")),
 	}
 	e.Renderer = t
 
@@ -43,6 +48,7 @@ func main() {
 	e.GET("/flights", getRedirectHandler(http.StatusTemporaryRedirect, "/flights/today"))
 	e.GET("/flights/:when", getFlightsHandler(dao))
 	e.GET("/reg/:icao", getRegistrationHandler(dao))
+	e.GET("/reg", getRegSearchHandler(dao))
 	e.GET("/flight/:id", getFlightHandler(dao))
 
 	e.Static("/static", "static")
@@ -135,6 +141,7 @@ func getFlightsHandler(dao *data.DAO) func(c echo.Context) error {
 
 		vals := map[string]interface{}{
 			"Title":      "Flights",
+			"section":    "flights",
 			"Flights":    flights,
 			"DateString": visibledate,
 		}
@@ -172,6 +179,7 @@ func getRegistrationHandler(dao *data.DAO) func(c echo.Context) error {
 
 		vals := map[string]interface{}{
 			"Title":        "Aircraft Registration Information",
+			"section":      "aircraft",
 			"FoundRegInfo": foundRegInfo,
 			"RegInfo":      regInfo,
 			"Flights":      flights,
@@ -221,6 +229,7 @@ func getFlightHandler(dao *data.DAO) func(c echo.Context) error {
 
 		vals := map[string]interface{}{
 			"Title":       "Flight Info",
+			"section":     "flights",
 			"Flight":      flight,
 			"TrackLog":    tracklog,
 			"HasPosition": hasPosition,
@@ -239,4 +248,67 @@ func getConnection() (*sqlx.DB, error) {
 	}
 	db, err := sqlx.Connect("postgres", connStr)
 	return db, err
+}
+
+func getSimpleHandler(templateName, title, sectionName string) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		vals := map[string]interface{}{
+			"Title":   title,
+			"section": sectionName,
+		}
+		return c.Render(http.StatusOK, templateName, vals)
+	}
+}
+
+func getRegSearchHandler(dao *data.DAO) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		vals := map[string]interface{}{
+			"Title":   "Aircraft Search",
+			"section": "aircraft",
+			"error":   false,
+			"errmsg":  "",
+			"method":  "",
+		}
+
+		method := c.QueryParam("method")
+		q := c.QueryParam("q")
+		q = strings.TrimSpace(q)
+
+		if !(method == "icao" || method == "reg") || q == "" {
+			// No (valid) search, just show the search page
+			return c.Render(http.StatusOK, "regsearch.html", vals)
+		}
+
+		vals["method"] = method
+		vals["q"] = q
+
+		var err error
+		var found string
+
+		if method == "icao" {
+			if !icaoValidator.MatchString(q) {
+				vals["error"] = true
+				vals["errmsg"] = "Invalid ICAO ID. Must be six hex digits."
+			} else {
+				found = q
+			}
+		} else if method == "reg" {
+			found, err = dao.SearchRegistration(q)
+		}
+
+		if err != nil {
+			return c.String(http.StatusInternalServerError, "Couldn't execute search: "+err.Error())
+		}
+
+		if found == "" && !vals["error"].(bool) /*if error already set, don't overwrite it*/ {
+			vals["error"] = true
+			vals["errmsg"] = "Unable to find aircraft for your search (" + strings.TrimSpace(q) + ")"
+		}
+
+		if vals["error"].(bool) {
+			return c.Render(http.StatusOK, "regsearch.html", vals)
+		}
+
+		return c.Redirect(http.StatusPermanentRedirect, fmt.Sprintf("/reg/%s", url.QueryEscape(found)))
+	}
 }

@@ -134,23 +134,23 @@
             <th>Callsign</th>
             <th>Latitude</th>
             <th>Longitude</th>
-            <th>Heading</th>
-            <th>Speed</th>
-            <th>Altitude</th>
-            <th>VS</th>
+            <th class="numeric">Heading</th>
+            <th class="numeric">Speed</th>
+            <th class="numeric">Altitude</th>
+            <th class="numeric">VS</th>
         </tr>
     </thead>
     <tbody>
         {{ range .TrackLog }}
         <tr>
-            <td>{{ .Time.Format "15:04:05" }}</td>
+            <td class="tabular">{{ .Time.Format "15:04:05" }}</td>
             <td>{{ if .Callsign.Valid }}{{ .Callsign.Value }}{{ end }}</td>
-            <td>{{ if .Latitude.Valid }}{{ .Latitude.Value }}{{ end }}</td>
-            <td>{{ if .Longitude.Valid }}{{ .Longitude.Value }}{{ end }}</td>
-            <td>{{ if .Heading.Valid }}{{ .Heading.Value }}{{ end }}</td>
-            <td>{{ if .Speed.Valid }}{{ .Speed.Value }}{{ end }}</td>
-            <td>{{ if .Altitude.Valid }}{{ .Altitude.Value }}{{ end }}</td>
-            <td>{{ if .Vs.Valid }}{{ .Vs.Value }}{{ end }}</td>
+            <td class="tabular">{{ if .Latitude.Valid }}{{ PrettyLat .Latitude.Value }}{{ end }}</td>
+            <td class="tabular">{{ if .Longitude.Valid }}{{ PrettyLon .Longitude.Value }}{{ end }}</td>
+            <td class="numeric">{{ if .Heading.Valid }}{{ .Heading.Value }}{{ end }}</td>
+            <td class="numeric">{{ if .Speed.Valid }}{{ .Speed.Value }}{{ end }}</td>
+            <td class="numeric">{{ if .Altitude.Valid }}{{ .Altitude.Value }}{{ end }}</td>
+            <td class="numeric">{{ if .Vs.Valid }}{{ .Vs.Value }}{{ end }}</td>
         </tr>
         {{ end }}
     </tbody>
