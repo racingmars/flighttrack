@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 
@@ -40,7 +39,7 @@ var (
 
 // BodyDump returns a BodyDump middleware.
 //
-// BodyLimit middleware captures the request and response payload and calls the
+// BodyDump middleware captures the request and response payload and calls the
 // registered handler.
 func BodyDump(handler BodyDumpHandler) echo.MiddlewareFunc {
 	c := DefaultBodyDumpConfig
@@ -68,9 +67,9 @@ func BodyDumpWithConfig(config BodyDumpConfig) echo.MiddlewareFunc {
 			// Request
 			reqBody := []byte{}
 			if c.Request().Body != nil { // Read
-				reqBody, _ = ioutil.ReadAll(c.Request().Body)
+				reqBody, _ = io.ReadAll(c.Request().Body)
 			}
-			c.Request().Body = ioutil.NopCloser(bytes.NewBuffer(reqBody)) // Reset
+			c.Request().Body = io.NopCloser(bytes.NewBuffer(reqBody)) // Reset
 
 			// Response
 			resBody := new(bytes.Buffer)

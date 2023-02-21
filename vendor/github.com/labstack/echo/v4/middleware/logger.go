@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
-	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -20,9 +20,11 @@ type (
 		// Skipper defines a function to skip middleware.
 		Skipper Skipper
 
-		// Tags to constructed the logger format.
+		// Tags to construct the logger format.
 		//
 		// - time_unix
+		// - time_unix_milli
+		// - time_unix_micro
 		// - time_unix_nano
 		// - time_rfc3339
 		// - time_rfc3339_nano
@@ -33,6 +35,7 @@ type (
 		// - host
 		// - method
 		// - path
+		// - route
 		// - protocol
 		// - referer
 		// - user_agent
@@ -45,6 +48,7 @@ type (
 		// - header:<NAME>
 		// - query:<NAME>
 		// - form:<NAME>
+		// - custom (see CustomTagFunc field)
 		//
 		// Example "${remote_ip} ${status}"
 		//
@@ -53,6 +57,11 @@ type (
 
 		// Optional. Default value DefaultLoggerConfig.CustomTimeFormat.
 		CustomTimeFormat string `yaml:"custom_time_format"`
+
+		// CustomTagFunc is function called for `${custom}` tag to output user implemented text by writing it to buf.
+		// Make sure that outputted text creates valid JSON string with other logged tags.
+		// Optional.
+		CustomTagFunc func(c echo.Context, buf *bytes.Buffer) (int, error)
 
 		// Output is a writer where logs in JSON format are written.
 		// Optional. Default value os.Stdout.
@@ -73,7 +82,6 @@ var (
 			`"status":${status},"error":"${error}","latency":${latency},"latency_human":"${latency_human}"` +
 			`,"bytes_in":${bytes_in},"bytes_out":${bytes_out}}` + "\n",
 		CustomTimeFormat: "2006-01-02 15:04:05.00000",
-		Output:           os.Stdout,
 		colorer:          color.New(),
 	}
 )
@@ -125,8 +133,19 @@ func LoggerWithConfig(config LoggerConfig) echo.MiddlewareFunc {
 
 			if _, err = config.template.ExecuteFunc(buf, func(w io.Writer, tag string) (int, error) {
 				switch tag {
+				case "custom":
+					if config.CustomTagFunc == nil {
+						return 0, nil
+					}
+					return config.CustomTagFunc(c, buf)
 				case "time_unix":
 					return buf.WriteString(strconv.FormatInt(time.Now().Unix(), 10))
+				case "time_unix_milli":
+					// go 1.17 or later, it supports time#UnixMilli()
+					return buf.WriteString(strconv.FormatInt(time.Now().UnixNano()/1000000, 10))
+				case "time_unix_micro":
+					// go 1.17 or later, it supports time#UnixMicro()
+					return buf.WriteString(strconv.FormatInt(time.Now().UnixNano()/1000, 10))
 				case "time_unix_nano":
 					return buf.WriteString(strconv.FormatInt(time.Now().UnixNano(), 10))
 				case "time_rfc3339":
@@ -155,6 +174,8 @@ func LoggerWithConfig(config LoggerConfig) echo.MiddlewareFunc {
 						p = "/"
 					}
 					return buf.WriteString(p)
+				case "route":
+					return buf.WriteString(c.Path())
 				case "protocol":
 					return buf.WriteString(req.Proto)
 				case "referer":
@@ -175,7 +196,10 @@ func LoggerWithConfig(config LoggerConfig) echo.MiddlewareFunc {
 					return buf.WriteString(s)
 				case "error":
 					if err != nil {
-						return buf.WriteString(err.Error())
+						// Error may contain invalid JSON e.g. `"`
+						b, _ := json.Marshal(err.Error())
+						b = b[1 : len(b)-1]
+						return buf.Write(b)
 					}
 				case "latency":
 					l := stop.Sub(start)
@@ -210,6 +234,10 @@ func LoggerWithConfig(config LoggerConfig) echo.MiddlewareFunc {
 				return
 			}
 
+			if config.Output == nil {
+				_, err = c.Logger().Output().Write(buf.Bytes())
+				return
+			}
 			_, err = config.Output.Write(buf.Bytes())
 			return
 		}
